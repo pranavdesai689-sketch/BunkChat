@@ -1,6 +1,7 @@
 const WebSocket = require('ws');
 
-const wss = new WebSocket.Server({ port: 3000 });
+const PORT = process.env.PORT || 3000;
+const wss = new WebSocket.Server({ port: PORT });
 
 // -------------------------------------------------
 // GLOBAL IN-MEMORY STATE

@@ -1,5 +1,8 @@
-
-const socket = new WebSocket("ws://localhost:3000");
+const socket = new WebSocket(
+    location.protocol === "https:"
+        ? "wss://bunkchat.onrender.com"
+        : "ws://localhost:3000"
+);
 
 document.addEventListener('DOMContentLoaded', () => {
     // -------------------------------------------------

@@ -64,10 +64,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const groupChatMessages = document.getElementById('groupChatMessages');
     const groupLockBtn = document.getElementById('groupLockBtn');
     const groupEndBtn = document.getElementById('groupEndBtn');
+    const groupLeaveBtn = document.getElementById('groupLeaveBtn');
+    const emptyChatState = document.getElementById('emptyChatState');
+    const backToEmptyStateBtn = document.getElementById('backToEmptyStateBtn');
 
     // -------------------------------------------------
     // WEBSOCKET HANDLERS
     // -------------------------------------------------
+    if (!groupScreen) {
+        console.error("groupScreen not found in DOM");
+    }
+
     socket.onopen = () => {
         console.log("Connected to WebSocket");
     };
@@ -143,6 +150,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 break;
 
+            case 'group_lock_update':
+                if (data.code === currentGroupCode) {
+                    groupLocked = data.locked;
+                    if (groupLockBtn) {
+                        groupLockBtn.innerHTML = data.locked
+                            ? '<span class="material-symbols-outlined text-[20px]">lock</span>'
+                            : '<span class="material-symbols-outlined text-[20px]">lock_open</span>';
+                    }
+                }
+                break;
+
+            case 'group_locked':
+                showToast(data.message);
+                break;
+
+            case 'left_group':
+                groupScreen.classList.add('hidden');
+                personalScreen.classList.remove('hidden');
+                activeView = "personal";
+                currentGroupCode = null;
+                isGroupAdmin = false;
+                groupParticipants = [];
+                renderUserList();
+                updateActiveChatsBadge();
+                break;
+
             case 'error':
                 alert(data.message);
                 break;
@@ -187,6 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentGroupCode = data.code;
         isGroupAdmin = data.isAdmin;
         groupParticipants = data.members;
+        groupLocked = data.locked || false;
 
         personalScreen.classList.add('hidden');
         groupScreen.classList.remove('hidden');
@@ -323,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateActiveChatsBadge() {
         if (!activeChatsBadge) return;
-        const count = onlineUsers.length; // Already excludes self
+        const count = onlineUsers.length;
         if (count > 0) {
             activeChatsBadge.style.display = 'block';
             activeChatsBadge.innerText = count;
@@ -338,8 +372,24 @@ document.addEventListener('DOMContentLoaded', () => {
     function initializePersonalView() {
         renderUserList();
         updateActiveChatsBadge();
-        if (personalChatMessages) personalChatMessages.innerHTML = '';
+        if (personalChatMessages) {
+            personalChatMessages.innerHTML = '';
+            // Re-append empty state if it exists (it was removed by clearing innerHTML)
+            if (emptyChatState) {
+                personalChatMessages.appendChild(emptyChatState);
+                emptyChatState.style.display = 'flex';
+            }
+        }
         activeChatUser = null;
+        if (backToEmptyStateBtn) backToEmptyStateBtn.classList.add('hidden');
+
+        // Clear header info
+        const headerTitle = personalChatHeader.querySelector('h2');
+        const headerStatus = personalChatHeader.querySelector('p');
+        if (headerTitle) headerTitle.innerText = '';
+        if (headerStatus) headerStatus.innerText = '';
+        const headerAvatar = personalChatHeader.querySelector('.bg-cover');
+        if (headerAvatar) headerAvatar.style.backgroundImage = 'none';
     }
 
     function renderUserList() {
@@ -378,6 +428,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startOneToOneChat(user) {
+        if (emptyChatState) {
+            emptyChatState.style.display = 'none';
+        }
+        if (backToEmptyStateBtn) backToEmptyStateBtn.classList.remove('hidden');
+
         activeChatUser = user;
 
         if (unreadCounts[user]) {
@@ -432,7 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (personalInput) {
             personalInput.value = '';
-            personalInput.focus();
+            setTimeout(() => personalInput.focus(), 50);
         }
     }
 
@@ -450,6 +505,33 @@ document.addEventListener('DOMContentLoaded', () => {
     // -------------------------------------------------
     // MESSAGE INPUT LOGIC
     // -------------------------------------------------
+    function openEmojiPicker(targetInput, anchorBtn) {
+        const picker = document.createElement('div');
+        picker.className = "absolute bottom-14 right-0 bg-[#16181f] border border-[#2d3748] rounded-lg p-2 grid grid-cols-6 gap-2 z-50";
+
+        const emojis = "😀😁😂🤣😎😍🥰😘🤔😴😭😡👍🙏🔥💯❤️🎉🚀".split('');
+
+        emojis.forEach(e => {
+            const btn = document.createElement('button');
+            btn.innerText = e;
+            btn.className = "text-xl hover:scale-110 transition";
+            btn.onclick = () => {
+                targetInput.value += e;
+                targetInput.focus();
+            };
+            picker.appendChild(btn);
+        });
+
+        document.body.appendChild(picker);
+        const rect = anchorBtn.getBoundingClientRect();
+        picker.style.left = rect.left + "px";
+        picker.style.top = rect.top - picker.offsetHeight + "px";
+
+        setTimeout(() => {
+            document.addEventListener('click', () => picker.remove(), { once: true });
+        }, 0);
+    }
+
     function setupMessageInput(inputEl, sendBtn, messageContainer, isGroup) {
         if (!inputEl || !sendBtn) return;
 
@@ -460,53 +542,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (emojiBtn) {
             emojiBtn.onclick = (e) => {
                 e.preventDefault();
-
-                const id = 'emoji-tooltip';
-                if (document.getElementById(id)) return;
-
-                const tooltip = document.createElement('div');
-                tooltip.id = id;
-                tooltip.innerText = "Coming soon";
-
-                Object.assign(tooltip.style, {
-                    position: 'absolute',
-                    backgroundColor: '#1f2937',
-                    color: '#fff',
-                    padding: '4px 8px',
-                    borderRadius: '6px',
-                    fontSize: '11px',
-                    fontWeight: 'bold',
-                    pointerEvents: 'none',
-                    zIndex: '9999',
-                    opacity: '0',
-                    transition: 'opacity 0.2s ease-in-out',
-                    whiteSpace: 'nowrap'
-                });
-
-                document.body.appendChild(tooltip);
-
-                const rect = emojiBtn.getBoundingClientRect();
-                const tooltipWidth = tooltip.offsetWidth;
-
-                tooltip.style.left = `${rect.left + (rect.width / 2) - (tooltipWidth / 2)}px`;
-                tooltip.style.top = `${rect.top - 34}px`; // Position above
-
-                requestAnimationFrame(() => tooltip.style.opacity = '1');
-
-                setTimeout(() => {
-                    tooltip.style.opacity = '0';
-                    setTimeout(() => tooltip.remove(), 200);
-                }, 1500);
+                openEmojiPicker(inputEl, emojiBtn);
             };
         }
 
-        // Disable Add Circle (Dummy)
-        const addBtn = parent.querySelector('button'); // First button
-        if (addBtn && addBtn !== emojiBtn && !addBtn.classList.contains('bg-primary')) {
-            addBtn.onclick = (e) => e.preventDefault();
-        }
+
 
         const sendMessage = () => {
+            if (!isGroup && !activeChatUser) {
+                showInlineSelectUserHint();
+                return;
+            }
+
             const text = inputEl.value;
 
             if (!text.trim()) return;
@@ -551,12 +598,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         sendBtn.addEventListener('click', sendMessage);
 
+        let lastTypedAt = 0;
+
         inputEl.addEventListener('keydown', (e) => {
-            if (!isGroup && activeChatUser) {
-                socket.send(JSON.stringify({
-                    type: "typing",
-                    to: activeChatUser
-                }));
+            const now = Date.now();
+
+            if (!isGroup && activeChatUser && e.key.length === 1) {
+                if (now - lastTypedAt > 700) {
+                    socket.send(JSON.stringify({
+                        type: "typing",
+                        to: activeChatUser
+                    }));
+                    lastTypedAt = now;
+                }
             }
 
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -564,6 +618,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 sendMessage();
             }
         });
+    }
+
+    function showInlineSelectUserHint() {
+        let hint = document.getElementById('selectUserHint');
+
+        if (hint) return;
+
+        hint = document.createElement('div');
+        hint.id = 'selectUserHint';
+        hint.className = "absolute bottom-24 left-1/2 -translate-x-1/2 bg-[#16181f] border border-[#2d3748] text-gray-300 text-xs px-4 py-2 rounded-lg shadow-lg z-50 transition-opacity duration-300";
+        hint.innerText = "Select a user to start chatting";
+
+        document.body.appendChild(hint);
+
+        setTimeout(() => {
+            if (hint) {
+                hint.classList.add('opacity-0');
+                setTimeout(() => hint.remove(), 300);
+            }
+        }, 2000);
     }
 
     function showTypingIndicator(container, fromUser) {
@@ -616,10 +690,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check for Code Block (Strict)
         const trimmed = text.trim();
         const isCode = trimmed.startsWith('```') && trimmed.endsWith('```');
+        let rawCode = '';
 
         let contentHtml;
         if (isCode) {
-            const rawCode = trimmed.slice(3, -3); // Remove backticks
+            rawCode = trimmed.slice(3, -3); // Remove backticks
             const escapedCode = rawCode.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
             // Unique ID for this message's copy button
@@ -629,12 +704,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="flex flex-col gap-1 ${isSelf ? 'items-end' : 'items-start'} min-w-[250px]">
                     ${nameHeader}
                     <div class="bg-[#0f1117] rounded-lg ${roundedClass} border border-gray-700 overflow-hidden shadow-md w-full">
-                        <div class="flex items-center justify-between px-3 py-2 bg-[#16181f] border-b border-gray-700">
-                            <span class="text-xs text-gray-400 font-mono">Code Snippet</span>
-                            <button id="${msgId}" class="flex items-center gap-1 text-xs text-primary hover:text-white transition-colors">
-                                <span class="material-symbols-outlined text-[14px]">content_copy</span>
-                                <span>Copy Code</span>
-                            </button>
+                        <div class="flex items-center justify-center px-3 py-2 bg-[#16181f] border-b border-gray-700">
+                             <div class="flex items-center justify-between w-full">
+                                <span class="text-xs text-gray-400 font-mono">Code Snippet</span>
+                                <button id="${msgId}" class="flex items-center gap-1 text-xs text-primary hover:text-white transition-colors">
+                                    <span class="material-symbols-outlined text-[14px]">content_copy</span>
+                                    <span>Copy Code</span>
+                                </button>
+                            </div>
                         </div>
                         <div class="p-3 overflow-x-auto">
                             <pre class="text-sm font-mono text-gray-300"><code>${escapedCode}</code></pre>
@@ -668,8 +745,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = msgWrapper.querySelector('button[id^="code-"]');
             if (btn) {
                 btn.onclick = () => {
-                    const codeText = trimmed.slice(3, -3); // Recalculate or store
-                    navigator.clipboard.writeText(codeText).then(() => {
+                    navigator.clipboard.writeText(rawCode).then(() => {
                         const originalText = btn.innerHTML;
                         btn.innerHTML = '<span class="material-symbols-outlined text-[14px]">check</span><span>Copied</span>';
                         setTimeout(() => {
@@ -714,9 +790,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (groupLockBtn) {
             groupLockBtn.style.display = isGroupAdmin ? 'flex' : 'none';
+            // Set initial icon state
+            groupLockBtn.innerHTML = groupLocked
+                ? '<span class="material-symbols-outlined text-[20px]">lock</span>'
+                : '<span class="material-symbols-outlined text-[20px]">lock_open</span>';
+
+            groupLockBtn.onclick = () => {
+                console.log("Sending toggle_lock for", currentGroupCode);
+                socket.send(JSON.stringify({
+                    type: 'toggle_lock',
+                    code: currentGroupCode
+                }));
+            };
         }
         if (groupEndBtn) {
             groupEndBtn.style.display = isGroupAdmin ? 'flex' : 'none';
+        }
+        if (groupLeaveBtn) {
+            groupLeaveBtn.style.display = isGroupAdmin ? 'none' : 'flex';
+            groupLeaveBtn.onclick = () => {
+                if (confirm("Are you sure you want to leave the group?")) {
+                    socket.send(JSON.stringify({
+                        type: 'leave_group',
+                        code: currentGroupCode
+                    }));
+                }
+            };
         }
 
         updateGroupParticipantsList();
@@ -745,6 +844,10 @@ document.addEventListener('DOMContentLoaded', () => {
             gInput.parentNode.replaceChild(newInput, gInput);
 
             setupMessageInput(newInput, newBtn, groupChatMessages, true);
+            setTimeout(() => {
+                const g = document.getElementById('groupMessageInput');
+                if (g) g.focus();
+            }, 50);
         }
     }
 
@@ -885,20 +988,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function terminateGroupUI(message) {
-        alert(message || "Group ended.");
+    function terminateGroupUI() {
         groupScreen.classList.add('hidden');
         personalScreen.classList.remove('hidden');
         activeView = "personal";
-        isGroupAdmin = false;
         currentGroupCode = null;
+        isGroupAdmin = false;
+        groupParticipants = [];
         renderUserList();
         updateActiveChatsBadge();
+        initializePersonalView(); // Go to empty state
+    }
+
+    if (backToEmptyStateBtn) {
+        backToEmptyStateBtn.addEventListener('click', () => {
+            initializePersonalView();
+        });
     }
 
     function showToast(msg) {
         const toast = document.createElement('div');
-        toast.className = "fixed bottom-5 right-5 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-bounce";
+        toast.className = "fixed bottom-5 right-5 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-[200] animate-bounce";
         toast.innerText = msg;
         document.body.appendChild(toast);
         setTimeout(() => document.body.removeChild(toast), 3000);

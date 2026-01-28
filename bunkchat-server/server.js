@@ -5,7 +5,8 @@ const wss = new WebSocket.Server({ port: 3000 });
 // -------------------------------------------------
 // GLOBAL IN-MEMORY STATE
 // -------------------------------------------------
-const users = new Map(); // Key: WebSocket, Value: { name: String }
+const users = new Map();
+// ws -> { name: string, pending: Map<senderName, [{from,message,timestamp}]> }
 const groups = new Map(); // Key: groupCode, Value: { admin: String, members: Set<String>, locked: Boolean }
 
 console.log('BunkChat Server running on port 3000');
@@ -123,6 +124,12 @@ function handleEvent(ws, data) {
         case 'end_group':
             handleEndGroup(ws, data.code);
             break;
+        case 'toggle_lock':
+            handleToggleLock(ws, data.code);
+            break;
+        case 'leave_group':
+            handleLeaveGroup(ws, data.code);
+            break;
         default:
             break;
     }
@@ -150,13 +157,21 @@ function handleJoin(ws, requestedName) {
         counter++;
     }
 
-    users.set(ws, { name: finalName });
+    users.set(ws, { name: finalName, pending: new Map() });
 
     // Confirm join to user
     ws.send(JSON.stringify({
         type: 'login_success',
         username: finalName
     }));
+
+    const user = users.get(ws);
+    if (user && user.pending.size > 0) {
+        for (const msgs of user.pending.values()) {
+            msgs.forEach(m => ws.send(JSON.stringify(m)));
+        }
+        user.pending.clear();
+    }
 
     broadcastOnlineUsers();
     console.log(`${finalName} joined.`);
@@ -166,14 +181,26 @@ function handlePersonalMessage(ws, targetName, content) {
     const sender = users.get(ws);
     if (!sender) return;
 
+    const payload = {
+        type: 'personal_message',
+        from: sender.name,
+        message: content,
+        timestamp: Date.now()
+    };
+
     const targetWs = getSocketByName(targetName);
+
     if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-        targetWs.send(JSON.stringify({
-            type: 'personal_message',
-            from: sender.name,
-            message: content,
-            timestamp: Date.now()
-        }));
+        targetWs.send(JSON.stringify(payload));
+    } else {
+        for (const user of users.values()) {
+            if (user.name === targetName) {
+                if (!user.pending.has(sender.name)) {
+                    user.pending.set(sender.name, []);
+                }
+                user.pending.get(sender.name).push(payload);
+            }
+        }
     }
 }
 
@@ -215,9 +242,10 @@ function handleCreateGroup(ws, suggestedCode) {
 
     ws.send(JSON.stringify({
         type: 'group_joined',
-        code: code,
+        code,
         isAdmin: true,
-        members: [sender.name]
+        members: [sender.name],
+        locked: false
     }));
 
     console.log(`Group ${code} created by ${sender.name}`);
@@ -239,8 +267,8 @@ function handleJoinGroup(ws, code) {
 
     if (group.locked) {
         ws.send(JSON.stringify({
-            type: 'error',
-            message: 'Group is locked.'
+            type: 'group_locked',
+            message: 'Group chat is locked by admin.'
         }));
         return;
     }
@@ -324,4 +352,58 @@ function handleEndGroup(ws, code) {
 
     groups.delete(code);
     console.log(`Group ${code} ended.`);
+}
+
+function handleToggleLock(ws, code) {
+    console.log(`[ToggleLock] Request for code: ${code}`);
+    const sender = users.get(ws);
+    if (!sender) {
+        console.log(`[ToggleLock] Sender not found`);
+        return;
+    }
+
+    const group = groups.get(code);
+    if (!group) {
+        console.log(`[ToggleLock] Group not found`);
+        return;
+    }
+
+    if (group.admin !== sender.name) {
+        console.log(`[ToggleLock] Denied. Sender ${sender.name} is not admin ${group.admin}`);
+        return;
+    }
+
+    group.locked = !group.locked;
+    console.log(`[ToggleLock] Group ${code} locked status: ${group.locked}`);
+
+    broadcastToGroup(code, {
+        type: 'group_lock_update',
+        code,
+        locked: group.locked
+    });
+}
+
+function handleLeaveGroup(ws, code) {
+    const sender = users.get(ws);
+    if (!sender) return;
+
+    const group = groups.get(code);
+    if (!group) return;
+
+    group.members.delete(sender.name);
+
+    ws.send(JSON.stringify({
+        type: 'left_group',
+        code
+    }));
+
+    broadcastToGroup(code, {
+        type: 'group_member_joined',
+        code,
+        members: Array.from(group.members)
+    });
+
+    if (group.members.size === 0) {
+        groups.delete(code);
+    }
 }

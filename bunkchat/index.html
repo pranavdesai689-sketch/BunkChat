@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BunkChat</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#518cfb",
+                        "background-dark": "#0f1623",
+                        "sidebar-dark": "#16181f",
+                        "panel-dark": "#111318",
+                        "surface-dark": "#1b2331",
+                        "border-dark": "#2d3748"
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                        lg: "1rem",
+                        xl: "1.5rem",
+                        "2xl": "2rem",
+                        full: "9999px"
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f1623;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2d3748;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4a5568;
+        }
+
+        .bg-dots-pattern {
+            background-image: radial-gradient(#2d3748 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+
+<body class="bg-[#0e0f13] text-white font-display min-h-screen overflow-hidden">
+
+    <!-- ================= LOGIN SCREEN ================= -->
+    <div id="loginScreen" class="relative flex min-h-screen items-center justify-center p-4">
+        <!DOCTYPE html>
+
+        <html class="dark" lang="en">
+
+        <head>
+            <meta charset="utf-8" />
+            <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+            <title>BunkChat Login</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap"
+                rel="stylesheet" />
+            <link
+                href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+                rel="stylesheet" />
+            <link
+                href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+                rel="stylesheet" />
+            <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+            <script id="tailwind-config">
+                tailwind.config = {
+                    darkMode: "class",
+                    theme: {
+                        extend: {
+                            colors: {
+                                "primary": "#518cfb",
+                                "background-light": "#f5f6f8",
+                                "background-dark": "#0f1623",
+                            },
+                            fontFamily: {
+                                "display": ["Inter"]
+                            },
+                            borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                        },
+                    },
+                }
+            </script>
+        </head>
+
+        <body
+            class="relative flex min-h-screen w-full flex-col bg-[#0e0f13] dark:bg-[#0e0f13] text-white font-display overflow-hidden selection:bg-primary/30">
+            <!-- Background subtle effect -->
+            <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                <div
+                    class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/5 rounded-full blur-[120px] opacity-30">
+                </div>
+            </div>
+            <div class="relative z-10 flex flex-1 items-center justify-center p-4">
+                <!-- Login Card -->
+                <div
+                    class="w-full max-w-[440px] flex flex-col bg-[#16181f] rounded-xl border border-[#272a35] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-500">
+                    <!-- Card Content -->
+                    <div class="flex flex-col items-center justify-center pt-10 pb-6 px-8 text-center">
+                        <!-- Logo Icon -->
+                        <div
+                            class="size-14 rounded-2xl bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center mb-5 shadow-lg shadow-primary/20">
+                            <span class="material-symbols-outlined text-white text-[32px]">forum</span>
+                        </div>
+                        <!-- Headline -->
+                        <h1 class="text-3xl font-bold tracking-tight text-white mb-2">BunkChat</h1>
+                        <!-- Subtitle -->
+                        <p class="text-[#9ca3af] text-base font-normal leading-relaxed max-w-xs">
+                            No history. No storage. Just chat.<br />
+                            <span class="text-[#6b7280] text-sm">Ephemeral communication for the lab.</span>
+                        </p>
+                    </div>
+                    <!-- Form Area -->
+                    <div class="px-8 pb-8 w-full flex flex-col gap-6">
+                        <!-- Username Input -->
+                        <div class="flex flex-col gap-2">
+                            <label class="text-sm font-bold text-[#e5e7eb] pl-1" for="username">Username</label>
+                            <div class="relative group">
+                                <input autofocus=""
+                                    class="w-full h-14 rounded-lg bg-[#0e0f13] border border-[#272a35] px-4 pl-12 text-white placeholder:text-[#4b5563] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-base font-medium"
+                                    id="username" placeholder="Enter a temporary alias..." type="text" />
+                                <div
+                                    class="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center text-[#6b7280] group-focus-within:text-primary transition-colors">
+                                    <span class="material-symbols-outlined text-[20px]">person</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Action Button -->
+                        <button
+                            class="relative w-full h-12 bg-primary hover:bg-blue-600 active:bg-blue-700 text-white text-base font-bold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20 group">
+                            <span class="truncate">Enter Chat</span>
+                            <span
+                                class="material-symbols-outlined text-[20px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+                        </button>
+                    </div>
+                    <!-- Footer Note -->
+                    <div
+                        class="bg-[#13151b] px-6 py-4 border-t border-[#272a35] flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-[#6b7280] text-[16px]">info</span>
+                        <p class="text-xs text-[#6b7280] font-medium">
+                            Warning: Refreshing clears your session completely.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <script src="app.js"></script>
+
+        </body>
+
+        </html>
+    </div>
+
+    <!-- ================= PERSONAL CHAT SCREEN ================= -->
+    <div id="personalScreen" class="hidden h-screen w-full flex">
+        <!DOCTYPE html>
+
+        <html class="dark" lang="en">
+
+        <head>
+            <meta charset="utf-8" />
+            <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+            <title>BunkChat Main Dashboard</title>
+            <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+            <link
+                href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+                rel="stylesheet" />
+            <link href="https://fonts.googleapis.com" rel="preconnect" />
+            <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
+                rel="stylesheet" />
+            <link
+                href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+                rel="stylesheet" />
+            <script id="tailwind-config">
+                tailwind.config = {
+                    darkMode: "class",
+                    theme: {
+                        extend: {
+                            colors: {
+                                "primary": "#518cfb",
+                                "background-light": "#f5f6f8",
+                                "background-dark": "#0f1623",
+                                "sidebar-dark": "#16181f",
+                                "panel-dark": "#111318"
+                            },
+                            fontFamily: {
+                                "display": ["Inter", "sans-serif"]
+                            },
+                            borderRadius: {
+                                "DEFAULT": "0.5rem",
+                                "lg": "1rem",
+                                "xl": "1.5rem",
+                                "full": "9999px"
+                            },
+                        },
+                    },
+                }
+            </script>
+            <style>
+                /* Custom scrollbar for dark theme */
+                .dark ::-webkit-scrollbar {
+                    width: 8px;
+                }
+
+                .dark ::-webkit-scrollbar-track {
+                    background: #0f1623;
+                }
+
+                .dark ::-webkit-scrollbar-thumb {
+                    background: #272e3a;
+                    border-radius: 4px;
+                }
+
+                .dark ::-webkit-scrollbar-thumb:hover {
+                    background: #374151;
+                }
+            </style>
+        </head>
+
+        <body
+            class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden h-screen w-full flex">
+            <!-- Sidebar -->
+            <aside
+                class="w-20 bg-[#16181f] flex flex-col items-center py-6 gap-8 shrink-0 z-20 border-r border-white/5">
+                <!-- User Avatar -->
+                <div class="relative group cursor-pointer">
+                    <div
+                        class="size-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg ring-2 ring-transparent group-hover:ring-primary transition-all">
+                        <span class="material-symbols-outlined">person</span>
+                    </div>
+                </div>
+                <!-- Navigation -->
+                <nav class="flex flex-col gap-6 w-full items-center mt-4">
+                    <button class="flex flex-col items-center gap-1 w-full relative group">
+                        <div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full"></div>
+                        <div class="p-3 bg-primary/20 rounded-xl text-primary transition-colors">
+                            <span class="material-symbols-outlined text-[24px]">chat_bubble</span>
+                        </div>
+                    </button>
+                    <button class="flex flex-col items-center gap-1 w-full group">
+                        <div
+                            class="p-3 text-gray-400 group-hover:text-white group-hover:bg-white/5 rounded-xl transition-colors">
+                            <span class="material-symbols-outlined text-[24px]">group</span>
+                        </div>
+                    </button>
+                </nav>
+                <!-- Footer Actions -->
+                <div class="mt-auto flex flex-col gap-4">
+                    <button class="p-3 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-xl transition-colors"
+                        title="End Session">
+                        <span class="material-symbols-outlined text-[24px]">power_settings_new</span>
+                    </button>
+                </div>
+            </aside>
+            <!-- Middle Panel: User List -->
+            <div class="w-80 bg-panel-dark flex flex-col border-r border-white/5 shrink-0 hidden md:flex">
+                <!-- Header -->
+                <div class="h-20 flex items-center px-6 border-b border-white/5 shrink-0">
+                    <h3 class="text-white text-lg font-bold tracking-tight">Active Chats</h3>
+                    <div class="ml-auto bg-primary/20 text-primary text-xs font-medium px-2 py-1 rounded-full"
+                        style="display:none"></div>
+                </div>
+                <!-- List -->
+                <div class="flex-1 overflow-y-auto px-2 pb-4 space-y-1">
+                    <!-- Dynamic Content -->
+                </div>
+            </div>
+            <!-- Right Panel: Chat Area -->
+            <main class="flex-1 flex flex-col min-w-0 bg-background-dark relative">
+                <!-- Chat Header -->
+                <header
+                    class="h-20 border-b border-white/5 flex items-center justify-between px-6 shrink-0 bg-background-dark/50 backdrop-blur-md z-10">
+                    <div class="flex items-center gap-4">
+                        <div class="relative">
+                            <div class="bg-center bg-no-repeat bg-cover rounded-full size-10 ring-2 ring-white/10"
+                                style="background-color: transparent;">
+                            </div>
+                        </div>
+                        <div>
+                            <h2 class="text-white font-bold text-base leading-tight"></h2>
+                            <p class="text-primary text-xs font-medium"></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2"></div>
+                </header>
+                <!-- Messages Area -->
+                <div class="flex-1 overflow-y-auto p-6 space-y-6 flex flex-col">
+                    <!-- Dynamic Content -->
+                </div>
+                <!-- Input Area -->
+                <div class="p-4 bg-background-dark border-t border-white/5 shrink-0 z-20">
+                    <div
+                        class="max-w-4xl mx-auto flex items-end gap-3 bg-[#16181f] p-2 rounded-xl ring-1 ring-white/5 focus-within:ring-primary/50 focus-within:ring-1 transition-all">
+                        <div class="flex-1 py-2 pl-2">
+                            <textarea
+                                class="w-full bg-transparent text-sm text-white placeholder-gray-500 border-none focus:ring-0 p-0 resize-none max-h-32 leading-6"
+                                oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"
+                                placeholder="Type a message..." rows="1"></textarea>
+                        </div>
+                        <div class="flex items-center gap-1 pb-1">
+                            <button
+                                class="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors shrink-0">
+                                <span class="material-symbols-outlined text-[20px]">sentiment_satisfied</span>
+                            </button>
+                            <button
+                                class="p-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors shadow-lg shadow-primary/20 shrink-0">
+                                <span class="material-symbols-outlined text-[20px] translate-x-0.5">send</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-center mt-2">
+                        <p class="text-[10px] text-gray-600">Press Enter to send, Shift + Enter for new line</p>
+                    </div>
+                </div>
+            </main>
+            <script src="app.js"></script>
+
+        </body>
+
+        </html>
+    </div>
+
+    <!-- ================= GROUP CHAT SCREEN ================= -->
+    <!-- Top Navigation Bar -->
+    <header
+        class="flex items-center justify-between border-b border-gray-200 dark:border-border-dark px-6 py-3 bg-white dark:bg-surface-dark z-20">
+        <div class="flex items-center gap-3">
+            <div class="flex items-center justify-center size-9 rounded-lg bg-primary/20 text-primary">
+                <span class="material-symbols-outlined text-[24px]">school</span>
+            </div>
+            <h1 class="text-xl font-bold tracking-tight dark:text-white">BunkChat</h1>
+            <span
+                class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400">Beta</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <button
+                class="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                <div
+                    class="size-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs">
+                    ME
+                </div>
+                <span class="text-sm font-medium hidden sm:block">You</span>
+            </button>
+        </div>
+    </header>
+    <main class="flex-1 flex overflow-hidden relative">
+        <aside
+            class="w-64 border-r border-gray-200 dark:border-border-dark bg-white dark:bg-surface-dark flex flex-col hidden md:flex">
+            <div class="p-4 border-b border-gray-200 dark:border-border-dark">
+                <h3 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Active
+                    Participants (0)</h3>
+                <!-- Dynamic List -->
+                <div id="groupParticipantsList" class="space-y-1"></div>
+            </div>
+            <div class="mt-auto p-4 border-t border-gray-200 dark:border-border-dark">
+                <button
+                    class="w-full flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 py-2">
+                    <span class="material-symbols-outlined text-[20px]">settings</span>
+                    <span>Chat Settings</span>
+                </button>
+            </div>
+        </aside>
+        <div class="flex-1 flex flex-col relative">
+            <div
+                class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-border-dark bg-white/50 dark:bg-background-dark/95 backdrop-blur-sm z-10 sticky top-0">
+                <div class="flex flex-col">
+                    <div class="flex items-center gap-2">
+                        <h2 id="groupNameDisplay" class="text-2xl font-bold dark:text-white leading-none">--</h2>
+                        <button id="copyGroupCodeBtn" class="text-gray-400 hover:text-primary transition-colors"
+                            title="Copy Code">
+                            <span class="material-symbols-outlined text-[20px]">content_copy</span>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
+                        <span class="block size-2 rounded-full bg-green-500 animate-pulse"></span>
+                        Active Session
+                    </p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <!-- Lock Group Button -->
+                    <button id="groupLockBtn" style="display:none;"
+                        class="flex items-center justify-center size-10 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                        title="Lock Group">
+                        <span class="material-symbols-outlined text-[20px]">lock_open</span>
+                    </button>
+                    <!-- End Group Button -->
+                    <button id="groupEndBtn" style="display:none;"
+                        class="flex items-center gap-2 px-4 h-10 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 font-bold text-sm transition-colors border border-red-500/20">
+                        <span class="material-symbols-outlined text-[20px]">do_not_disturb_on</span>
+                        <span class="hidden sm:inline">End Group</span>
+                    </button>
+                </div>
+            </div>
+            <div id="groupChatMessages" class="flex-1 overflow-y-auto p-6 space-y-6 bg-dots-pattern">
+                <div class="flex justify-center">
+                    <span
+                        class="text-xs font-medium text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-800/50 px-3 py-1 rounded-full">Today</span>
+                </div>
+                <!-- Messages go here -->
+            </div>
+            <div class="p-4 bg-white dark:bg-surface-dark border-t border-gray-200 dark:border-border-dark">
+                <div class="flex gap-3 max-w-4xl mx-auto w-full">
+                    <button
+                        class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+                        <span class="material-symbols-outlined">add_circle</span>
+                    </button>
+                    <div class="flex-1 relative">
+                        <input id="groupMessageInput"
+                            class="w-full h-11 pl-4 pr-12 bg-gray-100 dark:bg-background-dark border-transparent focus:border-primary focus:ring-0 rounded-xl text-sm dark:text-white transition-all placeholder:text-gray-500"
+                            placeholder="Type a message..." type="text" />
+                        <button
+                            class="absolute right-2 top-1.5 p-1.5 text-gray-400 hover:text-primary transition-colors">
+                            <span class="material-symbols-outlined text-[20px]">sentiment_satisfied</span>
+                        </button>
+                    </div>
+                    <button id="groupSendBtn"
+                        class="size-11 flex items-center justify-center bg-primary hover:bg-blue-600 text-white rounded-xl shadow-lg hover:shadow-primary/25 transition-all">
+                        <span class="material-symbols-outlined">send</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL OVERLAY -->
+        <div id="groupAuthModal"
+            class="absolute inset-0 z-[100] bg-[#0f1623]/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6">
+            <div
+                class="bg-[#1b2331] w-full max-w-lg rounded-modal border border-[#2d3748] shadow-2xl relative flex flex-col overflow-hidden max-h-[90vh]">
+                <button id="closeGroupModalBtn"
+                    class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10">
+                    <span class="material-symbols-outlined text-2xl">close</span>
+                </button>
+
+                <!-- Scrollable Content -->
+                <div class="p-6 sm:p-8 overflow-y-auto custom-scrollbar">
+                    <div class="text-center mb-6">
+                        <div class="size-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <span class="material-symbols-outlined text-3xl text-primary">groups</span>
+                        </div>
+                        <h2 class="text-2xl font-extrabold text-white tracking-tight">Group Chat</h2>
+                        <p class="text-gray-400 text-sm mt-1">Create a new group or join an existing one</p>
+                    </div>
+                    <div class="space-y-6">
+                        <section>
+                            <div class="flex items-center gap-2 mb-3">
+                                <div
+                                    class="size-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                                    <span class="material-symbols-outlined text-lg">add_box</span>
+                                </div>
+                                <h3 class="font-bold text-white">Create Group</h3>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="grid grid-cols-2 gap-2 p-1 bg-[#0f1623] rounded-lg border border-[#2d3748]">
+                                    <button id="btnGenerateCode"
+                                        class="flex items-center justify-center px-4 py-2 text-xs font-semibold rounded-md bg-[#2d3748] text-white shadow-sm transition-all hover:bg-[#384459]">
+                                        Generate code
+                                    </button>
+                                    <button id="btnOwnCode"
+                                        class="flex items-center justify-center px-4 py-2 text-xs font-semibold rounded-md text-gray-400 hover:text-gray-200 transition-colors">
+                                        My own code
+                                    </button>
+                                </div>
+                                <!-- Input for Own Code (Hidden by default or toggled) -->
+                                <div id="createGroupInputContainer" class="hidden">
+                                    <input id="newGroupCodeInput"
+                                        class="w-full h-12 px-4 bg-[#0f1623] border border-[#2d3748] rounded-lg text-sm font-bold text-white uppercase mb-2"
+                                        placeholder="ENTER YOUR CODE">
+                                </div>
+
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="flex-1 flex items-center justify-between h-12 px-4 bg-[#0f1623] border border-[#2d3748] rounded-lg">
+                                        <span id="generatedCodeDisplay"
+                                            class="font-mono text-lg font-bold tracking-[0.2em] text-white">---</span>
+                                        <span
+                                            class="text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-[#2d3748] px-2 py-0.5 rounded">Auto</span>
+                                    </div>
+                                    <button id="createGroupActionBtn"
+                                        class="h-12 w-12 flex items-center justify-center rounded-lg bg-primary hover:bg-[#3d7eff] text-white transition-all shadow-lg shadow-primary/20">
+                                        <span class="material-symbols-outlined text-2xl">arrow_forward</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+                        <div class="relative flex py-2 items-center">
+                            <div class="flex-grow border-t border-[#2d3748]"></div>
+                            <span
+                                class="flex-shrink mx-4 text-[10px] font-bold text-gray-600 uppercase tracking-widest">or</span>
+                            <div class="flex-grow border-t border-[#2d3748]"></div>
+                        </div>
+                        <section>
+                            <div class="flex items-center gap-2 mb-3">
+                                <div
+                                    class="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                                    <span class="material-symbols-outlined text-lg">login</span>
+                                </div>
+                                <h3 class="font-bold text-white">Join Group</h3>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <input id="joinGroupCodeInput"
+                                    class="flex-1 h-12 px-4 bg-[#0f1623] border border-[#2d3748] focus:border-primary focus:ring-1 focus:ring-primary rounded-lg text-sm font-bold tracking-widest text-white placeholder:text-gray-600 uppercase"
+                                    placeholder="ENTER CODE (E.G. L4B-909)" type="text" />
+                                <button id="joinGroupBtn"
+                                    class="h-12 px-6 font-bold text-sm rounded-lg bg-[#2d3748] text-gray-200 hover:bg-[#384459] transition-colors border border-[#3d4a60]">
+                                    Join
+                                </button>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="px-8 py-4 bg-[#0f1623]/50 border-t border-[#2d3748] text-center shrink-0">
+                    <p class="text-[11px] text-gray-500 flex items-center justify-center gap-1.5">
+                        <span class="material-symbols-outlined text-[14px]">history</span>
+                        Note: Groups and messages are temporary.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ================= GLOBAL SCRIPT ================= -->
+    <script src="app.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BunkChat Dashboard - Group</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d59f2",
+                        "background-light": "#f5f6f8",
+                        "background-dark": "#0f0f0f",
+                        "surface-dark": "#161616",
+                        "accent-green": "#10b981",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #222f49;
+            border-radius: 10px;
+        }
+        .status-pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white h-screen overflow-hidden">
+<div class="flex flex-col h-full">
+<!-- Top Navigation -->
+<header class="flex items-center justify-between border-b border-white/10 px-6 py-3 bg-white dark:bg-surface-dark z-10">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">bolt</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight">BunkChat</h1>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-sm font-medium text-primary border-b-2 border-primary pb-1" href="#">Dashboard</a>
+<a class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-white transition-colors" href="#">Lab History</a>
+<a class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-white transition-colors" href="#">Resources</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex items-center bg-slate-100 dark:bg-white/5 rounded-lg px-3 py-1.5 gap-2 border border-white/5">
+<span class="material-symbols-outlined text-sm text-accent-green status-pulse" style="font-variation-settings: 'FILL' 1">fiber_manual_record</span>
+<span class="text-xs font-mono font-medium text-slate-500 dark:text-slate-400">SESSION PERSISTENT FOR 45:12</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-slate-700 overflow-hidden border border-white/10 ml-2">
+<img class="w-full h-full object-cover" data-alt="User profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6gavJbaXRuBbXh4oYvb_JrQSgmfl4JZSVpaOw-dpzZL1PyFsduzuEIIFeoz67ov4ENYqc7K1h0iCp9U6WTtjkftbul4J7xLeLGg-uofZ41KA5Mop9Ucis7t8AMqLQXcln_2SBm4THLPnCKrUj5sMo1fS2mKq8XYuBMgnH0Qls0l-s8Af0GFmzv44Nf2ikBZbXPpBixvxD4MrNs-b2zwIkTW2f_KtRfNp3DCV90vxHlaU_YyS4UekyTWt4K2N34JEMSHry-BnlUYha"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Workspace -->
+<main class="flex flex-1 overflow-hidden">
+<!-- Left Sidebar: Online Students -->
+<aside class="w-64 flex flex-col border-r border-white/5 bg-white dark:bg-background-dark">
+<div class="p-4 flex flex-col h-full">
+<div class="flex items-center justify-between mb-6 px-2">
+<div class="flex flex-col">
+<span class="text-xs font-bold uppercase tracking-widest text-slate-500">Active Lab</span>
+<span class="text-sm font-medium">CS301: OS Lab</span>
+</div>
+<span class="bg-accent-green/10 text-accent-green text-[10px] px-2 py-0.5 rounded-full font-bold">12 ONLINE</span>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-1">
+<div class="flex items-center gap-3 p-2 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-lg">grid_view</span>
+<span class="text-sm font-medium">Main Channel</span>
+</div>
+<div class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 text-slate-400 cursor-pointer">
+<span class="material-symbols-outlined text-lg">code</span>
+<span class="text-sm font-medium">Debug Snippets</span>
+</div>
+<div class="mt-8 mb-2 px-2">
+<span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Collaborators</span>
+</div>
+<!-- Student List Item -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 cursor-pointer group">
+<div class="flex items-center gap-3">
+<div class="relative w-8 h-8 rounded-full bg-slate-800 border border-white/10 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Rahul S avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQvTvJh6MpwFkGDCTENFm4tIwl0696KR6DuDqv4VKTeH5WIGRi5ndMgWfX27qiUH2eEyVtGeWOmP1H_xhBmvBp6NvZyYW52juu1lQ8Emn2NbeEzhdDpGI2sFHb08RWyTK4_twDI7-vnsQIXLaLBLcXQZdo2WZjYjXMmcOnVugSofHBaqaWoeJasQZeaOf_KrEMWHM0D5D17snNWzAR5ftjFJTY-Vd00c36HBIlpBSh6HuNr6wrjlEVISnewAHkjDrTkuT6Iyp8YsCN"/>
+<div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-accent-green rounded-full border-2 border-background-dark"></div>
+</div>
+<span class="text-sm font-medium text-slate-300">Rahul S.</span>
+</div>
+</div>
+<!-- Student List Item -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 cursor-pointer group">
+<div class="flex items-center gap-3">
+<div class="relative w-8 h-8 rounded-full bg-slate-800 border border-white/10 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Sneha K avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4o823LPZjV7D1JqUBOD1xdIMqk9LIGj_ch-MsC255RVO-E33jHJPojPq13KWR6MfWQSxU3VHJ7wT0-13SuxrHKbVC9iElYm2omAbeGbeB7Fsp_fzSIJLZqCDNi72_84ZXTGre7o_GaSn3A-MdpMryWG41xNu5299_5RjK5ofiCnDiliOoBmbHaCxGzvAufWbmllAX_2xaSgamHBGPi0pUjerFbxkBekAMg00-CgdV88Vk4f1qNvTdXbibscghzpSH-bQp_RGOdJo-"/>
+<div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-accent-green rounded-full border-2 border-background-dark"></div>
+</div>
+<span class="text-sm font-medium text-slate-300">Sneha K.</span>
+</div>
+</div>
+<!-- Student List Item -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 cursor-pointer group">
+<div class="flex items-center gap-3">
+<div class="relative w-8 h-8 rounded-full bg-slate-800 border border-white/10 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Anjali M avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCH0-qeDDdmF8vJhADLgcOeFGOJAT5qIF8uX9humNd8IscpYiwj_bARUlL5cZ86K64uVFhjylX8Qta3jP5v9WX67uDJUEXo1nn8sLRgtrPnv2xHnZC9VUsf_bG75io5r2lDK7f8IJvZ_LfZxZ2bc9aXWjYVUxhGcpSY1BbMBAW2dWl7dLXtj4ZdBggVlELu7UGUqYf9FIzTJli1qtTaIz2pSwMrvN4r3LtYV7aiS2j-KH-qvUByQx-O8foLtFdE5JArDDJzvNp9mPP"/>
+<div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-accent-green rounded-full border-2 border-background-dark"></div>
+</div>
+<span class="text-sm font-medium text-slate-300">Anjali M.</span>
+</div>
+</div>
+<!-- Student List Item (Inactive) -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 cursor-pointer group opacity-50">
+<div class="flex items-center gap-3">
+<div class="relative w-8 h-8 rounded-full bg-slate-800 border border-white/10 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Vikram T avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoiJn0s21Zc25_Rde1RvIueXNcUKE28aQX8Qq8qTloJkPAy15cOCHhofEBJ3gW_EVnsjiHxs5DQ8bE_9kOXTGjOczpMMY1Df7DIoxBLr_fvd34YRixeBvRZBQQOT4gWGmo-KWhe65bAfRGztJuojauJtq4lSXLGe5nsI-8LVeJAEcLcGjFpNTEx4Q-C14rflYuviTEWIC6jgmVzAxTJfGidaiCU5AUAe5hDVBlG3IHMtfkzCYG_0d0VXcn0MU-9nno9afSpwh_M4UG"/>
+</div>
+<span class="text-sm font-medium text-slate-300">Vikram T.</span>
+</div>
+</div>
+</div>
+<div class="pt-4 border-t border-white/5">
+<button class="w-full flex items-center justify-center gap-2 py-2 bg-primary hover:bg-primary/90 rounded-lg text-white text-sm font-bold transition-all">
+<span class="material-symbols-outlined text-sm">person_add</span>
+                            Invite Student
+                        </button>
+</div>
+</div>
+</aside>
+<!-- Center Panel: Chat Canvas -->
+<section class="flex-1 flex flex-col bg-background-light dark:bg-background-dark">
+<!-- Chat Header -->
+<div class="px-6 py-4 flex items-center justify-between border-b border-white/5">
+<div class="flex flex-col">
+<h2 class="text-lg font-bold flex items-center gap-2">
+                            Lab 04: Operating Systems
+                            <span class="material-symbols-outlined text-primary text-base">verified</span>
+</h2>
+<p class="text-xs text-slate-500 font-medium">Memory Management &amp; Paging Systems</p>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/10 text-xs font-medium hover:bg-white/5">
+<span class="material-symbols-outlined text-sm">attach_file</span>
+                            Share Code
+                        </button>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/10 text-xs font-medium hover:bg-white/5">
+<span class="material-symbols-outlined text-sm">output</span>
+                            Export Log
+                        </button>
+</div>
+</div>
+<!-- Messages Stream -->
+<div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+<!-- System Message -->
+<div class="flex justify-center">
+<div class="bg-white/5 px-4 py-1.5 rounded-full border border-white/5">
+<p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Privacy-First Session Started • No history stored</p>
+</div>
+</div>
+<!-- Message Other -->
+<div class="flex items-start gap-4 max-w-[80%]">
+<div class="w-9 h-9 shrink-0 rounded-full bg-slate-700 border border-white/10 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Rahul avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwGj9NuDzV3HH3IM7hQgmk4PZXgyAkJ__-MJpFdw2-DLVKeXMXAIZnGAxztcSNkrciTjbXQWn363E85B8lKnMS-j9lV32UTjKD2uX7MOas0EjAsW0L0g52ryeWh--CqvH3M3gbEYvs7BFsIJ3xNqQBT8hKdNmWW19nno3Oq8kwId9Mv5ToKPxy3nHwjjlxkaw6OTMWxDDBFuKsZnwF7D1NQeZpYW0ebOOvzWE-XLzK4Mn9E-_Hl-EdK76w6CcXnmeoGyOTzxmgMe2a"/>
+</div>
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold text-slate-400">Rahul S.</span>
+<span class="text-[10px] text-slate-600">10:42 AM</span>
+</div>
+<div class="bg-white dark:bg-surface-dark p-4 rounded-xl rounded-tl-none border border-white/5 shadow-xl">
+<p class="text-sm leading-relaxed">Has anyone finished the shell script for Task 2? I'm getting a syntax error on line 15 when I try to parse the process IDs.</p>
+</div>
+</div>
+</div>
+<!-- Message Other with Code Block -->
+<div class="flex items-start gap-4 max-w-[90%]">
+<div class="w-9 h-9 shrink-0 rounded-full bg-slate-700 border border-white/10 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Sneha avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBT3WHdBEedWc0kJdNYiA28GV-AMWOF1dwdIFSJBJAiV8fJqDqriKLuh_Ss8bchwnCN9vcerBgE-5kaq48utYdp_h5IO6D59FRlcjQSwbQTWddvruxYJ-Ga3g2NybxJvaTRqZ7LAV2uncyuH5hXITPFdfLNce_SbRXGo0S3bt-wHRgpPw4xUhgTMqtHlUF73zWPP1-h7sSgnciXdzGr87Fuy8dj6F8QYQEPxbPvoDhEITh0MNJEFImWuKBQ5NlB1t5nUtrJ33C50pPy"/>
+</div>
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold text-slate-400">Sneha K.</span>
+<span class="text-[10px] text-slate-600">10:45 AM</span>
+</div>
+<div class="bg-white dark:bg-surface-dark p-4 rounded-xl rounded-tl-none border border-white/5 shadow-xl space-y-3">
+<p class="text-sm leading-relaxed">Check your grep command. Try this approach instead:</p>
+<div class="rounded-lg bg-black/50 border border-primary/30 p-4 font-mono text-xs overflow-x-auto text-primary">
+<pre><code>ps aux | grep "[s]shd" | awk '{print $2}'</code></pre>
+</div>
+<p class="text-sm leading-relaxed">The brackets around the first letter prevent grep from finding itself.</p>
+</div>
+</div>
+</div>
+<!-- Message Self -->
+<div class="flex flex-row-reverse items-start gap-4 max-w-[80%] ml-auto">
+<div class="w-9 h-9 shrink-0 rounded-full bg-primary border border-white/20 overflow-hidden flex items-center justify-center">
+<span class="text-xs font-bold">ME</span>
+</div>
+<div class="flex flex-col gap-1.5 items-end">
+<div class="flex items-center gap-2">
+<span class="text-[10px] text-slate-600">10:48 AM</span>
+<span class="text-xs font-bold text-primary">You</span>
+</div>
+<div class="bg-primary p-4 rounded-xl rounded-tr-none shadow-xl">
+<p class="text-sm leading-relaxed text-white">That worked perfectly, Sneha! Thanks. Moving on to the memory mapping task now.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Message Input -->
+<div class="p-6 pt-0">
+<div class="relative bg-white dark:bg-surface-dark rounded-xl border border-white/10 shadow-2xl focus-within:border-primary/50 transition-all p-2">
+<textarea class="w-full bg-transparent border-none focus:ring-0 text-sm py-3 px-4 resize-none min-h-[100px] font-display" placeholder="Paste code or type your message... (Messages vanish when session ends)"></textarea>
+<div class="flex items-center justify-between mt-2 px-2 pb-1">
+<div class="flex items-center gap-1">
+<button class="p-2 text-slate-500 hover:text-white hover:bg-white/5 rounded-lg">
+<span class="material-symbols-outlined text-[20px]">code</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-white hover:bg-white/5 rounded-lg">
+<span class="material-symbols-outlined text-[20px]">image</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-white hover:bg-white/5 rounded-lg">
+<span class="material-symbols-outlined text-[20px]">attach_file</span>
+</button>
+<div class="w-px h-6 bg-white/10 mx-1"></div>
+<button class="p-2 text-slate-500 hover:text-white hover:bg-white/5 rounded-lg">
+<span class="material-symbols-outlined text-[20px]">mood</span>
+</button>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all">
+                                Send Message
+                                <span class="material-symbols-outlined text-sm">send</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Sidebar: Group Info & Admin -->
+<aside class="w-80 flex flex-col border-l border-white/5 bg-white dark:bg-surface-dark">
+<div class="p-6 flex flex-col gap-8 h-full">
+<!-- Timer Component -->
+<div class="flex flex-col gap-4">
+<h3 class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Session Lifecycle</h3>
+<div class="grid grid-cols-3 gap-2">
+<div class="flex flex-col items-center gap-1">
+<div class="w-full bg-background-dark/50 border border-white/5 py-3 rounded-lg flex items-center justify-center">
+<span class="text-xl font-bold font-mono">00</span>
+</div>
+<span class="text-[9px] text-slate-500 font-bold">HOURS</span>
+</div>
+<div class="flex flex-col items-center gap-1">
+<div class="w-full bg-background-dark/50 border border-primary/20 py-3 rounded-lg flex items-center justify-center">
+<span class="text-xl font-bold font-mono text-primary">45</span>
+</div>
+<span class="text-[9px] text-primary font-bold">MINS</span>
+</div>
+<div class="flex flex-col items-center gap-1">
+<div class="w-full bg-background-dark/50 border border-white/5 py-3 rounded-lg flex items-center justify-center">
+<span class="text-xl font-bold font-mono">12</span>
+</div>
+<span class="text-[9px] text-slate-500 font-bold">SECS</span>
+</div>
+</div>
+<div class="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[75%]"></div>
+</div>
+</div>
+<!-- Member List & Admin Controls -->
+<div class="flex flex-col gap-4 flex-1">
+<div class="flex items-center justify-between">
+<h3 class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Member Controls</h3>
+<span class="material-symbols-outlined text-sm text-slate-500 cursor-pointer">settings</span>
+</div>
+<div class="flex flex-col gap-3 overflow-y-auto custom-scrollbar">
+<!-- Admin Member Item -->
+<div class="group relative flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-slate-800 border border-white/10 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Prof Davis avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVZ-J1erx2zXNhW5y8pAnms1HXnv5U84aQErMvnfinhpo-OHAn8mc5tmMGGrirFxuKi1_LAqGPCQ0t_3I8YpA2GtP3wueoacKlwJUAUFFPFH7qpdaqAo37kvpJ39K7-AfYyQeyHNYP4rSQqvAevSPjmyljP4wodn6enPC684aFTWhxo6pNpQ6lTQma_EwpcbSSdUIMzTILZXppPWr6RVJCh5G27LZw7eJIyPbjkwmwwXf95D73OZLVxNCIisw54UIL-dBTtJAmUPmd"/>
+</div>
+<div class="flex flex-col">
+<span class="text-xs font-bold">Prof. Davis</span>
+<span class="text-[10px] text-primary font-bold uppercase">Moderator</span>
+</div>
+</div>
+</div>
+<!-- Student Member Item with Admin Actions -->
+<div class="group relative flex items-center justify-between hover:bg-white/5 p-3 rounded-xl transition-all border border-transparent hover:border-white/5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-slate-800 border border-white/10 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Rahul S avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlLS6eMqz688djuCDKBypUe7GWxSkJnV3ojBRapf1-uGnG-ZsDMDp622maIGKRhjnWadcIABFVhqngqUivpqwRAFMYeHqxVKamZvU0Gff7oZzCJ1VoNF_Zbi8jdfUZOuBGJGueQ4wI5yM7bCS87wQWKdlBp3nQhk2HVSP5xZlh5mio4f62PjhfsGE7nO4xwJopnxItKYlZZT2mvh1Yd066Qig2_YONPcb2FX6Yt1dnPtYE6dWbCi2ctflzOK2fWNOlWPg1lE_hBSvY"/>
+</div>
+<div class="flex flex-col">
+<span class="text-xs font-bold text-slate-300">Rahul S.</span>
+<span class="text-[10px] text-slate-500">Student</span>
+</div>
+</div>
+<div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-primary/20 hover:text-primary rounded-lg text-slate-500 transition-colors">
+<span class="material-symbols-outlined text-sm">mic_off</span>
+</button>
+<button class="p-1.5 hover:bg-red-500/20 hover:text-red-500 rounded-lg text-slate-500 transition-colors">
+<span class="material-symbols-outlined text-sm">person_remove</span>
+</button>
+</div>
+</div>
+<!-- Student Member Item -->
+<div class="group relative flex items-center justify-between hover:bg-white/5 p-3 rounded-xl transition-all border border-transparent hover:border-white/5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-slate-800 border border-white/10 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Sneha K avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlkWfw_a7ZrqJqKkc377mGuh7QEqOEWS1KJ4NECbnAq3dJtIS0ZY6thQSubD6a88iP2E0YJd2OeFfTfLH0hiju7osrf5h-Fqt1yaGoJ7wUx9n_vSHjLAcLDcm076VKnTan_0TJbqMG6r8sCOVNWRYU8N8kML56bngGRHaMh2dwZATdX9NvKcM8_7GZl1tsxlyWs__SMdhsiI6dkzamlse50bgx25zyEZXrc_FOePA0HhvHfEtsdhPJPul5DL1rULqrpGZ_dHJe5Sco"/>
+</div>
+<div class="flex flex-col">
+<span class="text-xs font-bold text-slate-300">Sneha K.</span>
+<span class="text-[10px] text-slate-500">Student</span>
+</div>
+</div>
+<div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-primary/20 hover:text-primary rounded-lg text-slate-500 transition-colors">
+<span class="material-symbols-outlined text-sm">mic_off</span>
+</button>
+<button class="p-1.5 hover:bg-red-500/20 hover:text-red-500 rounded-lg text-slate-500 transition-colors">
+<span class="material-symbols-outlined text-sm">person_remove</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Room Actions -->
+<div class="flex flex-col gap-2 pt-4 border-t border-white/5">
+<button class="w-full py-2 bg-white/5 hover:bg-white/10 rounded-lg text-slate-300 text-xs font-bold transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">archive</span>
+                            Session Summary
+                        </button>
+<button class="w-full py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">logout</span>
+                            Leave &amp; Self-Destruct
+                        </button>
+</div>
+</div>
+</aside>
+</main>
+</div>
+</body></html>

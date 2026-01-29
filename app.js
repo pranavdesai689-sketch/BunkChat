@@ -391,8 +391,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const headerStatus = personalChatHeader.querySelector('p');
         if (headerTitle) headerTitle.innerText = '';
         if (headerStatus) headerStatus.innerText = '';
+
+        // Clear Avatar and Block Button
         const headerAvatar = personalChatHeader.querySelector('.bg-cover');
-        if (headerAvatar) headerAvatar.style.backgroundImage = 'none';
+        if (headerAvatar) {
+            headerAvatar.style.backgroundImage = 'none';
+            headerAvatar.style.backgroundColor = 'transparent';
+            headerAvatar.innerHTML = '';
+        }
+
+        const blockBtn = document.getElementById('blockUserBtn');
+        if (blockBtn) blockBtn.remove();
     }
 
     function renderUserList() {

@@ -1,8 +1,13 @@
-const socket = new WebSocket(
-    location.protocol === "https:"
-        ? "wss://bunkchat.onrender.com"
-        : "ws://localhost:3000"
-);
+const CONFIG = (() => {
+    const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname);
+    return {
+        IS_LOCAL: isLocal,
+        WS_BASE: isLocal ? "ws://localhost:3000" : "wss://bunkchat.onrender.com",
+        API_BASE: isLocal ? "http://localhost:3000" : "https://bunkchat.onrender.com"
+    };
+})();
+
+const socket = new WebSocket(CONFIG.WS_BASE);
 
 document.addEventListener('DOMContentLoaded', () => {
     // -------------------------------------------------
@@ -389,15 +394,18 @@ document.addEventListener('DOMContentLoaded', () => {
         // Clear header info
         const headerTitle = personalChatHeader.querySelector('h2');
         const headerStatus = personalChatHeader.querySelector('p');
-        if (headerTitle) headerTitle.innerText = '';
+        if (headerTitle) headerTitle.innerText = 'BunkChat';
         if (headerStatus) headerStatus.innerText = '';
 
         // Clear Avatar and Block Button
         const headerAvatar = personalChatHeader.querySelector('.bg-cover');
         if (headerAvatar) {
-            headerAvatar.style.backgroundImage = 'none';
-            headerAvatar.style.backgroundColor = 'transparent';
-            headerAvatar.innerHTML = '';
+            // Apply Brand Styling
+            headerAvatar.style.backgroundImage = 'linear-gradient(to bottom right, #518cfb, #1d4ed8)'; // from-primary to-blue-700
+            headerAvatar.style.backgroundColor = '';
+            headerAvatar.innerHTML = '<span class="material-symbols-outlined text-white text-[24px]">forum</span>';
+            headerAvatar.classList.remove('bg-cover'); // Ensure gradient shows
+            headerAvatar.classList.add('flex', 'items-center', 'justify-center');
         }
 
         const blockBtn = document.getElementById('blockUserBtn');
@@ -505,13 +513,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function blockCurrentUser() {
         if (!activeChatUser) return;
-        if (confirm(`Block ${activeChatUser}? You won't see them anymore.`)) {
-            blockedUsers.add(activeChatUser);
-            renderUserList();
-            if (personalChatMessages) personalChatMessages.innerHTML = '';
-            if (personalChatHeader.querySelector('h2')) personalChatHeader.querySelector('h2').innerText = '';
-            activeChatUser = null;
-        }
+        showConfirmModal(
+            `Block ${activeChatUser}?`,
+            "You won't see them anymore and they won't be able to message you.",
+            () => {
+                blockedUsers.add(activeChatUser);
+                renderUserList();
+                initializePersonalView(); // Reset to empty state
+            },
+            true // Danger style
+        );
     }
 
     // -------------------------------------------------
@@ -519,9 +530,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // -------------------------------------------------
     function openEmojiPicker(targetInput, anchorBtn) {
         const picker = document.createElement('div');
-        picker.className = "absolute bottom-14 right-0 bg-[#16181f] border border-[#2d3748] rounded-lg p-2 grid grid-cols-6 gap-2 z-50";
+        picker.className = "absolute bottom-16 right-0 mr-4 bg-[#16181f] border border-[#2d3748] rounded-lg p-2 grid grid-cols-6 gap-2 z-50 shadow-xl";
 
-        const emojis = "😀😁😂🤣😎😍🥰😘🤔😴😭😡👍🙏🔥💯❤️🎉🚀".split('');
+        const emojis = [
+            '\u{1F600}', '\u{1F601}', '\u{1F602}', '\u{1F923}', '\u{1F60E}', '\u{1F60D}', '\u{1F970}', '\u{1F618}',
+            '\u{1F914}', '\u{1F634}', '\u{1F62D}', '\u{1F621}', '\u{1F44D}', '\u{1F64F}', '\u{1F525}', '\u{1F4AF}',
+            '\u{2764}', '\u{1F389}', '\u{1F680}'
+        ];
 
         emojis.forEach(e => {
             const btn = document.createElement('button');
@@ -535,21 +550,112 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.body.appendChild(picker);
-        const rect = anchorBtn.getBoundingClientRect();
-        picker.style.left = rect.left + "px";
-        picker.style.top = rect.top - picker.offsetHeight + "px";
+        // Removed manual styling (top/left) to rely on CSS classes (bottom-16) for stability.
+
+        // Prevent click inside picker from closing it immediately
+        picker.addEventListener('click', (e) => e.stopPropagation());
 
         setTimeout(() => {
             document.addEventListener('click', () => picker.remove(), { once: true });
         }, 0);
     }
 
+    function openAttachmentMenu(inputEl, triggerBtn) {
+        const existing = document.getElementById('attachmentMenu');
+        if (existing) {
+            existing.remove();
+            return;
+        }
+
+        const menu = document.createElement('div');
+        menu.id = "attachmentMenu";
+        menu.className = "fixed bg-[#16181f] border border-[#2d3748] rounded-xl p-2 z-[60] shadow-xl min-w-[150px] flex flex-col gap-1";
+
+        menu.innerHTML = `
+             <button id="attachCodeBtn" class="w-full flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-sm font-medium text-left">
+                <span class="material-symbols-outlined text-primary">code</span>
+                Code Snippet
+            </button>
+        `;
+
+        document.body.appendChild(menu);
+
+        // Position
+        const rect = triggerBtn.getBoundingClientRect();
+        menu.style.left = rect.left + 'px';
+        menu.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
+
+        // Wire Code Btn
+        const codeBtn = menu.querySelector('#attachCodeBtn');
+        codeBtn.onclick = () => {
+            const start = inputEl.selectionStart;
+            const end = inputEl.selectionEnd;
+            const text = inputEl.value;
+
+            // Smart formatting
+            const hasNewlineBefore = start === 0 || text[start - 1] === '\n';
+            const prefix = hasNewlineBefore ? "```\n" : "\n```\n";
+            const suffix = "\n```\n";
+            const placeholder = "Paste your code here";
+
+            inputEl.value = text.substring(0, start) + prefix + placeholder + suffix + text.substring(end);
+
+            inputEl.focus();
+            const newStart = start + prefix.length;
+            const newEnd = newStart + placeholder.length;
+            inputEl.setSelectionRange(newStart, newEnd);
+
+            // Trigger resize if needed
+            if (inputEl.tagName === 'TEXTAREA') {
+                inputEl.style.height = 'auto';
+                inputEl.style.height = inputEl.scrollHeight + 'px';
+            }
+
+            menu.remove();
+        };
+
+        // Click outside to close
+        setTimeout(() => {
+            const closeHandler = (e) => {
+                if (!menu.contains(e.target) && e.target !== triggerBtn) {
+                    menu.remove();
+                    document.removeEventListener('click', closeHandler);
+                }
+            };
+            document.addEventListener('click', closeHandler);
+        }, 0);
+    }
+
     function setupMessageInput(inputEl, sendBtn, messageContainer, isGroup) {
         if (!inputEl || !sendBtn) return;
 
+        // Attachment Support
+        const attachBtnId = isGroup ? 'groupAttachBtn' : 'personalAttachBtn';
+        const attachBtn = document.getElementById(attachBtnId);
+        if (attachBtn) {
+            attachBtn.onclick = (e) => {
+                e.preventDefault();
+                openAttachmentMenu(inputEl, attachBtn);
+            };
+        }
+
         // Emoji Support
         const parent = inputEl.parentElement.parentElement;
-        const emojiBtn = Array.from(parent.querySelectorAll('button')).find(b => b.innerHTML.includes('sentiment_satisfied'));
+        // Fallback or specific selection for emoji
+        let emojiBtn;
+        if (isGroup) {
+            // For group, parent of input is the relative container.
+            emojiBtn = inputEl.parentElement.querySelector('button span.material-symbols-outlined')?.parentElement;
+            // Actually inputEl sibling
+            if (!emojiBtn) {
+                // Try finding based on content
+                const btns = inputEl.parentElement.querySelectorAll('button');
+                emojiBtn = Array.from(btns).find(b => b.innerHTML.includes('sentiment_satisfied'));
+            }
+        } else {
+            const btns = parent.querySelectorAll('button');
+            emojiBtn = Array.from(btns).find(b => b.innerHTML.includes('sentiment_satisfied'));
+        }
 
         if (emojiBtn) {
             emojiBtn.onclick = (e) => {
@@ -606,6 +712,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             inputEl.value = '';
+            inputEl.style.height = ''; // Reset height
         };
 
         sendBtn.addEventListener('click', sendMessage);
@@ -1036,6 +1143,134 @@ document.addEventListener('DOMContentLoaded', () => {
         banner.className = "fixed top-0 left-0 w-full bg-red-600 text-white text-center py-2 z-[10000] font-bold";
         banner.innerText = msg;
         document.body.appendChild(banner);
+    }
+
+    // -------------------------------------------------
+    // CUSTOM CONFIRMATION MODAL LOGIC
+    // -------------------------------------------------
+    const confirmationModal = document.getElementById('confirmationModal');
+    const confirmTitle = document.getElementById('confirmTitle');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmIcon = document.getElementById('confirmIcon');
+    const confirmOkBtn = document.getElementById('confirmOkBtn');
+    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+
+    let currentConfirmCallback = null;
+
+    if (confirmOkBtn) {
+        confirmOkBtn.addEventListener('click', () => {
+            if (confirmationModal) confirmationModal.classList.add('hidden');
+            if (currentConfirmCallback) {
+                currentConfirmCallback();
+                currentConfirmCallback = null; // Reset
+            }
+        });
+    }
+
+    if (confirmCancelBtn) {
+        confirmCancelBtn.addEventListener('click', () => {
+            if (confirmationModal) confirmationModal.classList.add('hidden');
+            currentConfirmCallback = null; // Reset
+        });
+    }
+
+    function showConfirmModal(title, message, onConfirm, isDanger = true) {
+        if (!confirmationModal) return;
+
+        confirmTitle.innerText = title;
+        confirmMessage.innerText = message;
+        currentConfirmCallback = onConfirm;
+
+        // Style adjustments
+        if (isDanger) {
+            confirmOkBtn.className = "flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-red-500/20";
+            confirmIcon.innerText = "priority_high";
+            confirmIcon.parentElement.className = "size-12 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-red-400";
+        } else {
+            confirmOkBtn.className = "flex-1 px-4 py-2 bg-primary hover:bg-indigo-600 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-indigo-500/20";
+            confirmIcon.innerText = "info";
+            confirmIcon.parentElement.className = "size-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 text-primary";
+        }
+
+        confirmationModal.classList.remove('hidden');
+    }
+
+
+    // -------------------------------------------------
+    // SETTINGS & BLOCKED USERS LOGIC
+    // -------------------------------------------------
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsModal = document.getElementById('settingsModal');
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    const closeSettingsFooterBtn = document.getElementById('closeSettingsFooterBtn');
+    const blockedUsersList = document.getElementById('blockedUsersList');
+
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => {
+            if (settingsModal) {
+                settingsModal.classList.remove('hidden');
+                renderBlockedUsers();
+            }
+        });
+    }
+
+    function closeSettings() {
+        if (settingsModal) settingsModal.classList.add('hidden');
+    }
+
+    if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', closeSettings);
+    if (closeSettingsFooterBtn) closeSettingsFooterBtn.addEventListener('click', closeSettings);
+    if (settingsModal) {
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) closeSettings();
+        });
+    }
+
+    function renderBlockedUsers() {
+        if (!blockedUsersList) return;
+        blockedUsersList.innerHTML = '';
+
+        if (blockedUsers.size === 0) {
+            blockedUsersList.innerHTML = `
+                <div class="text-center text-gray-500 py-4 text-sm italic">
+                    No blocked users.
+                </div>`;
+            return;
+        }
+
+        blockedUsers.forEach(user => {
+            const item = document.createElement('div');
+            item.className = "flex items-center justify-between bg-white/5 px-3 py-2 rounded-lg border border-white/5";
+            item.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="bg-gradient-to-br from-gray-600 to-gray-700 rounded-full size-8 flex items-center justify-center text-white text-xs font-bold">
+                        ${user.substring(0, 2).toUpperCase()}
+                    </div>
+                    <span class="text-white text-sm font-medium">${user}</span>
+                </div>
+                <button class="text-xs bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded-md transition-all font-medium">
+                    Unblock
+                </button>
+            `;
+
+            const unblockBtn = item.querySelector('button');
+            unblockBtn.addEventListener('click', () => {
+                showConfirmModal(
+                    "Unblock User?",
+                    `Are you sure you want to unblock ${user}? They will be able to message you.`,
+                    () => {
+                        blockedUsers.delete(user);
+                        renderBlockedUsers();
+                        renderUserList();
+                    },
+                    false // Not "Danger" red, maybe simple primary? Or keeping unblock as neutral.
+                    // Actually user said "design special box". I implemented danger toggle. 
+                    // Unblocking is usually safe, so 'false' (Primary Color) is good.
+                );
+            });
+
+            blockedUsersList.appendChild(item);
+        });
     }
 
     init();

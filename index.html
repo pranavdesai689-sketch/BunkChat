@@ -73,7 +73,7 @@
 
 <body class="bg-[#0e0f13] text-white font-display min-h-screen overflow-hidden">
 
-    
+
     <!-- ================= LOGIN SCREEN ================= -->
     <div id="loginScreen" class="relative flex min-h-screen items-center justify-center p-4">
         <!DOCTYPE html>
@@ -275,6 +275,11 @@
                 </nav>
                 <!-- Footer Actions -->
                 <div class="mt-auto flex flex-col gap-4">
+                    <button id="settingsBtn"
+                        class="p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                        title="Settings">
+                        <span class="material-symbols-outlined text-[24px]">settings</span>
+                    </button>
                     <button class="p-3 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-xl transition-colors"
                         title="End Session">
                         <span class="material-symbols-outlined text-[24px]">power_settings_new</span>
@@ -360,8 +365,14 @@
                                 placeholder="Type a message..." rows="1"></textarea>
                         </div>
                         <div class="flex items-center gap-1 pb-1">
+                            <button id="personalAttachBtn"
+                                class="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors shrink-0"
+                                title="Add Attachment">
+                                <span class="material-symbols-outlined text-[20px]">add_circle</span>
+                            </button>
                             <button
-                                class="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors shrink-0">
+                                class="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors shrink-0"
+                                title="Emoji">
                                 <span class="material-symbols-outlined text-[20px]">sentiment_satisfied</span>
                             </button>
                             <button
@@ -465,8 +476,13 @@
 
                         <div class="flex-1 relative">
                             <input id="groupMessageInput"
-                                class="w-full h-11 pl-4 pr-12 bg-gray-100 dark:bg-background-dark border-transparent focus:border-primary focus:ring-0 rounded-xl text-sm dark:text-white transition-all placeholder:text-gray-500"
+                                class="w-full h-11 pl-4 pr-20 bg-gray-100 dark:bg-background-dark border-transparent focus:border-primary focus:ring-0 rounded-xl text-sm dark:text-white transition-all placeholder:text-gray-500"
                                 placeholder="Type a message..." type="text" />
+                            <button id="groupAttachBtn"
+                                class="absolute right-10 top-1.5 p-1.5 text-gray-400 hover:text-primary transition-colors"
+                                title="Add Attachment">
+                                <span class="material-symbols-outlined text-[20px]">add_circle</span>
+                            </button>
                             <button
                                 class="absolute right-2 top-1.5 p-1.5 text-gray-400 hover:text-primary transition-colors">
                                 <span class="material-symbols-outlined text-[20px]">sentiment_satisfied</span>
@@ -588,6 +604,70 @@
     <div class="fixed bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-gray-500 opacity-70">
         Chats are user-generated. Site owner is not responsible.
     </div>
+    <!-- Settings Modal -->
+    <div id="settingsModal"
+        class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div
+            class="bg-[#16181f] border border-[#2d3748] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transform scale-100 transition-all">
+            <!-- Modal Header -->
+            <div class="bg-[#0f1116] px-6 py-4 border-b border-white/5 flex items-center justify-between">
+                <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">manage_accounts</span>
+                    Blocked Users
+                </h3>
+                <button id="closeSettingsBtn" class="text-gray-400 hover:text-white transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- Modal Body (List) -->
+            <div class="p-6">
+                <p class="text-gray-400 text-sm mb-4">Manage users you have blocked. Unblocking will allow them to
+                    message you again.</p>
+
+                <div id="blockedUsersList" class="flex flex-col gap-2 max-h-60 overflow-y-auto pr-2">
+                    <!-- Populated by JS -->
+                    <div class="text-center text-gray-500 py-4 text-sm italic">
+                        No blocked users.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-[#0f1116] px-6 py-4 flex justify-end">
+                <button id="closeSettingsFooterBtn"
+                    class="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal"
+        class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center">
+        <div
+            class="bg-[#16181f] border border-[#2d3748] rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl transform scale-100 transition-all">
+            <div class="p-6 text-center">
+                <div class="size-12 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span id="confirmIcon" class="material-symbols-outlined text-white text-[24px]">priority_high</span>
+                </div>
+                <h3 id="confirmTitle" class="text-white font-bold text-lg mb-2">Are you sure?</h3>
+                <p id="confirmMessage" class="text-gray-400 text-sm">This action cannot be undone.</p>
+            </div>
+            <div class="bg-[#0f1116] px-6 py-4 flex gap-3 justify-center">
+                <button id="confirmCancelBtn"
+                    class="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmOkBtn"
+                    class="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-red-500/20">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 
 </body>

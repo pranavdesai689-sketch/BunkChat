@@ -108,7 +108,7 @@ function handleEvent(ws, data) {
             handleJoin(ws, data.name);
             break;
         case 'personal_message':
-            handlePersonalMessage(ws, data.to, data.message);
+            handlePersonalMessage(ws, data.to, data.message, data.replyTo);
             break;
         case 'typing':
             handleTyping(ws, data.to);
@@ -120,7 +120,7 @@ function handleEvent(ws, data) {
             handleJoinGroup(ws, data.code);
             break;
         case 'group_message':
-            handleGroupMessage(ws, data.code, data.message);
+            handleGroupMessage(ws, data.code, data.message, data.replyTo);
             break;
         case 'end_group':
             handleEndGroup(ws, data.code);
@@ -178,7 +178,7 @@ function handleJoin(ws, requestedName) {
     console.log(`${finalName} joined.`);
 }
 
-function handlePersonalMessage(ws, targetName, content) {
+function handlePersonalMessage(ws, targetName, content, replyTo = null) {
     const sender = users.get(ws);
     if (!sender) return;
 
@@ -186,6 +186,7 @@ function handlePersonalMessage(ws, targetName, content) {
         type: 'personal_message',
         from: sender.name,
         message: content,
+        replyTo: replyTo,
         timestamp: Date.now()
     };
 
@@ -205,106 +206,9 @@ function handlePersonalMessage(ws, targetName, content) {
     }
 }
 
-function handleTyping(ws, targetName) {
-    const sender = users.get(ws);
-    if (!sender) return;
+// ... (skipping unchanged code)
 
-    const targetWs = getSocketByName(targetName);
-    if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-        targetWs.send(JSON.stringify({
-            type: 'typing',
-            from: sender.name
-        }));
-    }
-}
-
-function handleCreateGroup(ws, suggestedCode) {
-    const sender = users.get(ws);
-    if (!sender) return;
-
-    let code = suggestedCode;
-    if (!code) {
-        code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    }
-
-    if (groups.has(code)) {
-        ws.send(JSON.stringify({
-            type: 'error',
-            message: 'Group code already exists.'
-        }));
-        return;
-    }
-
-    groups.set(code, {
-        admin: sender.name,
-        members: new Set([sender.name]),
-        locked: false
-    });
-
-    ws.send(JSON.stringify({
-        type: 'group_joined',
-        code,
-        isAdmin: true,
-        members: [sender.name],
-        locked: false
-    }));
-
-    console.log(`Group ${code} created by ${sender.name}`);
-}
-
-function handleJoinGroup(ws, code) {
-    const sender = users.get(ws);
-    if (!sender) return;
-
-    const group = groups.get(code);
-
-    if (!group) {
-        ws.send(JSON.stringify({
-            type: 'error',
-            message: 'Group does not exist.'
-        }));
-        return;
-    }
-
-    if (group.locked) {
-        ws.send(JSON.stringify({
-            type: 'group_locked',
-            message: 'Group chat is locked by admin.'
-        }));
-        return;
-    }
-
-    if (group.members.has(sender.name)) {
-        // Already in (shouldn't happen with clean state but strict check)
-        ws.send(JSON.stringify({
-            type: 'group_joined',
-            code: code,
-            isAdmin: group.admin === sender.name,
-            members: Array.from(group.members)
-        }));
-        return;
-    }
-
-    group.members.add(sender.name);
-
-    // Notify user they joined
-    ws.send(JSON.stringify({
-        type: 'group_joined',
-        code: code,
-        isAdmin: false,
-        members: Array.from(group.members)
-    }));
-
-    // Notify others
-    broadcastToGroup(code, {
-        type: 'group_member_joined',
-        code: code,
-        user: sender.name,
-        members: Array.from(group.members)
-    });
-}
-
-function handleGroupMessage(ws, code, content) {
+function handleGroupMessage(ws, code, content, replyTo = null) {
     const sender = users.get(ws);
     if (!sender) return;
 
@@ -316,6 +220,7 @@ function handleGroupMessage(ws, code, content) {
         code: code,
         from: sender.name,
         message: content,
+        replyTo: replyTo,
         isAdmin: group.admin === sender.name,
         timestamp: Date.now()
     });
@@ -401,6 +306,7 @@ function handleLeaveGroup(ws, code) {
     broadcastToGroup(code, {
         type: 'group_member_joined',
         code,
+        admin: group.admin,
         members: Array.from(group.members)
     });
 

@@ -68,6 +68,15 @@
             background-image: radial-gradient(#2d3748 1px, transparent 1px);
             background-size: 24px 24px;
         }
+
+        /* Smooth Transitions */
+        button,
+        input,
+        textarea {
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 200ms;
+        }
     </style>
 </head>
 
@@ -153,6 +162,11 @@
                                     class="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center text-[#6b7280] group-focus-within:text-primary transition-colors">
                                     <span class="material-symbols-outlined text-[20px]">person</span>
                                 </div>
+                                <button id="loginEmojiBtn"
+                                    class="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-white transition-colors"
+                                    title="Add Emoji">
+                                    <span class="material-symbols-outlined text-[20px]">sentiment_satisfied</span>
+                                </button>
                             </div>
                         </div>
                         <!-- Action Button -->
@@ -287,7 +301,8 @@
                 </div>
             </aside>
             <!-- Middle Panel: User List -->
-            <div class="w-80 bg-panel-dark flex flex-col border-r border-white/5 shrink-0 hidden md:flex">
+            <div id="personalUserListPanel"
+                class="w-full md:w-80 bg-panel-dark flex flex-col border-r border-white/5 shrink-0 flex">
                 <!-- Header -->
                 <div class="h-20 flex items-center px-6 border-b border-white/5 shrink-0">
                     <h3 class="text-white text-lg font-bold tracking-tight">Active Chats</h3>
@@ -300,11 +315,16 @@
                 </div>
             </div>
             <!-- Right Panel: Chat Area -->
-            <main class="flex-1 flex flex-col min-w-0 bg-background-dark relative">
+            <main id="personalChatPanel"
+                class="flex-1 flex flex-col min-w-0 bg-background-dark relative hidden md:flex">
                 <!-- Chat Header -->
                 <header
                     class="h-20 border-b border-white/5 flex items-center justify-between px-6 shrink-0 bg-background-dark/50 backdrop-blur-md z-10">
                     <div class="flex items-center gap-4">
+                        <button id="mobileBackBtn"
+                            class="md:hidden p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors mr-2">
+                            <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                        </button>
                         <button id="backToEmptyStateBtn"
                             class="hidden p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
                             <span class="material-symbols-outlined text-[20px]">arrow_back</span>
@@ -358,8 +378,8 @@
                 <div class="p-4 bg-background-dark border-t border-white/5 shrink-0 z-20">
                     <div
                         class="max-w-4xl mx-auto flex items-end gap-3 bg-[#16181f] p-2 rounded-xl ring-1 ring-white/5 focus-within:ring-primary/50 focus-within:ring-1 transition-all">
-                        <div class="flex-1 py-2 pl-2">
-                            <textarea
+                        <div class="flex-1 py-2 pl-2 relative">
+                            <textarea id="personalMessageInput"
                                 class="w-full bg-transparent text-sm text-white placeholder-gray-500 border-none focus:ring-0 p-0 resize-none max-h-32 leading-6"
                                 oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"
                                 placeholder="Type a message..." rows="1"></textarea>
@@ -370,7 +390,7 @@
                                 title="Add Attachment">
                                 <span class="material-symbols-outlined text-[20px]">add_circle</span>
                             </button>
-                            <button
+                            <button id="personalEmojiBtn"
                                 class="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors shrink-0"
                                 title="Emoji">
                                 <span class="material-symbols-outlined text-[20px]">sentiment_satisfied</span>
@@ -475,15 +495,16 @@
                     <div class="flex gap-3 max-w-4xl mx-auto w-full">
 
                         <div class="flex-1 relative">
-                            <input id="groupMessageInput"
-                                class="w-full h-11 pl-4 pr-20 bg-gray-100 dark:bg-background-dark border-transparent focus:border-primary focus:ring-0 rounded-xl text-sm dark:text-white transition-all placeholder:text-gray-500"
-                                placeholder="Type a message..." type="text" />
+                            <textarea id="groupMessageInput"
+                                class="w-full min-h-[44px] py-3 pl-4 pr-20 bg-gray-100 dark:bg-background-dark border-transparent focus:border-primary focus:ring-0 rounded-xl text-sm dark:text-white transition-all placeholder:text-gray-500 resize-none overflow-hidden leading-5"
+                                oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"
+                                placeholder="Type a message..." rows="1"></textarea>
                             <button id="groupAttachBtn"
                                 class="absolute right-10 top-1.5 p-1.5 text-gray-400 hover:text-primary transition-colors"
                                 title="Add Attachment">
                                 <span class="material-symbols-outlined text-[20px]">add_circle</span>
                             </button>
-                            <button
+                            <button id="groupEmojiBtn"
                                 class="absolute right-2 top-1.5 p-1.5 text-gray-400 hover:text-primary transition-colors">
                                 <span class="material-symbols-outlined text-[20px]">sentiment_satisfied</span>
                             </button>

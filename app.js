@@ -22,9 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let typingTimeouts = {};
     let isSafetyAccepted = false;
     let isGroupAdmin = false;
+    let currentGroupAdmin = null;
     let currentGroupCode = null;
     let groupLocked = false;
     let groupParticipants = [];
+    let replyingTo = null; // { id, sender, text }
 
     // Message Store
     // Structure: { "Alice": [{from, text, timestamp}, ...] }
@@ -75,6 +77,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const groupLeaveBtn = document.getElementById('groupLeaveBtn');
     const emptyChatState = document.getElementById('emptyChatState');
     const backToEmptyStateBtn = document.getElementById('backToEmptyStateBtn');
+    const mobileBackBtn = document.getElementById('mobileBackBtn');
+
+    // Mobile Panels
+    const personalUserListPanel = document.getElementById('personalUserListPanel');
+    const personalChatPanel = document.getElementById('personalChatPanel');
 
     // -------------------------------------------------
     // WEBSOCKET HANDLERS
@@ -136,6 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'group_member_joined':
                 if (currentGroupCode === data.code) {
                     groupParticipants = data.members;
+                    if (data.admin) currentGroupAdmin = data.admin; // Sync admin
                     updateGroupParticipantsList();
                 }
                 break;
@@ -147,7 +155,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         data.from,
                         data.message,
                         data.from === currentUserName,
-                        data.isAdmin
+                        data.isAdmin,
+                        data.replyTo
                     );
                 }
                 break;
@@ -195,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // -------------------------------------------------
 
     function handleIncomingPersonalMessage(data) {
-        const { from, message } = data;
+        const { from, message, replyTo } = data;
 
         // 1. Store Message
         if (!personalMessages[from]) {
@@ -205,12 +214,13 @@ document.addEventListener('DOMContentLoaded', () => {
             from: from,
             text: message,
             timestamp: Date.now(),
-            isSelf: false
+            isSelf: false,
+            replyTo: replyTo
         });
 
         // 2. Logic based on Active View
         if (activeView === 'personal' && activeChatUser === from) {
-            appendMessage(personalChatMessages, from, message, false);
+            appendMessage(personalChatMessages, from, message, false, false, replyTo);
         } else {
             unreadCounts[from] = (unreadCounts[from] || 0) + 1;
             renderUserList();
@@ -227,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function onGroupJoined(data) {
         currentGroupCode = data.code;
         isGroupAdmin = data.isAdmin;
+        currentGroupAdmin = data.admin || null; // Capture admin name
         groupParticipants = data.members;
         groupLocked = data.locked || false;
 
@@ -261,6 +272,15 @@ document.addEventListener('DOMContentLoaded', () => {
         usernameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleLogin();
         });
+
+        // Login Emoji Support
+        const loginEmojiBtn = document.getElementById('loginEmojiBtn');
+        if (loginEmojiBtn) {
+            loginEmojiBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                openEmojiPicker(usernameInput, loginEmojiBtn);
+            });
+        }
     }
 
     function handleLogin() {
@@ -320,11 +340,23 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.innerText = "I Understand";
         btn.style.cssText = 'width:100%;padding:0.75rem;background-color:#518cfb;color:white;font-weight:bold;border-radius:0.5rem;cursor:pointer;';
 
-        btn.addEventListener('click', () => {
+        const acceptHandler = () => {
+            document.removeEventListener('keydown', keyHandler); // Cleanup
             isSafetyAccepted = true;
             document.body.removeChild(modalOverlay);
             initializePersonalView();
-        });
+        };
+
+        const keyHandler = (e) => {
+            if (e.key === 'Enter') {
+                acceptHandler();
+            }
+        };
+
+        btn.addEventListener('click', acceptHandler);
+
+        // Attach key listener
+        document.addEventListener('keydown', keyHandler);
 
         modalContent.appendChild(title);
         modalContent.appendChild(list);
@@ -410,6 +442,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const blockBtn = document.getElementById('blockUserBtn');
         if (blockBtn) blockBtn.remove();
+
+        // Mobile View Reset
+        if (window.innerWidth < 768) {
+            if (personalUserListPanel) personalUserListPanel.classList.remove('hidden');
+            if (personalChatPanel) personalChatPanel.classList.add('hidden');
+            if (personalScreen.querySelector('aside')) personalScreen.querySelector('aside').classList.remove('hidden');
+        }
     }
 
     function renderUserList() {
@@ -452,6 +491,13 @@ document.addEventListener('DOMContentLoaded', () => {
             emptyChatState.style.display = 'none';
         }
         if (backToEmptyStateBtn) backToEmptyStateBtn.classList.remove('hidden');
+
+        // Mobile View Switch
+        if (window.innerWidth < 768) {
+            if (personalUserListPanel) personalUserListPanel.classList.add('hidden');
+            if (personalChatPanel) personalChatPanel.classList.remove('hidden');
+            if (personalScreen.querySelector('aside')) personalScreen.querySelector('aside').classList.add('hidden'); // Hide sidebar on mobile chat
+        }
 
         activeChatUser = user;
 
@@ -526,11 +572,77 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------------------------------
+    // REPLY LOGIC
+    // -------------------------------------------------
+    function startReply(msgData) {
+        replyingTo = msgData;
+        updateReplyBanner();
+
+        // Focus input
+        const input = activeView === 'group'
+            ? document.getElementById('groupMessageInput')
+            : document.getElementById('personalMessageInput');
+        if (input) input.focus();
+    }
+
+    // Make global for inline onclick
+    window.startReply = startReply;
+
+    function cancelReply() {
+        replyingTo = null;
+        updateReplyBanner();
+    }
+
+    function updateReplyBanner() {
+        // Remove existing banners
+        document.querySelectorAll('.reply-banner').forEach(el => el.remove());
+
+        if (!replyingTo) return;
+
+        const container = activeView === 'group'
+            ? document.querySelector('#groupMessageInput')?.parentElement
+            : document.querySelector('#personalMessageInput')?.parentElement;
+
+        if (!container) return;
+
+        const banner = document.createElement('div');
+        banner.className = "reply-banner absolute bottom-full left-0 w-full mb-2 bg-[#1e232e] border border-[#2d3748] rounded-lg p-2 flex items-center justify-between shadow-lg z-10 animate-fade-in-up";
+
+        banner.innerHTML = `
+            <div class="flex flex-col overflow-hidden">
+                <span class="text-xs text-primary font-bold">Replying to ${replyingTo.sender}</span>
+                <span class="text-xs text-gray-400 truncate">${replyingTo.text.substring(0, 50)}...</span>
+            </div>
+            <button class="p-1 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors" onclick="cancelReply()">
+                <span class="material-symbols-outlined text-[16px]">close</span>
+            </button>
+        `;
+
+        // Make functions globally available for onclick
+        window.cancelReply = cancelReply;
+
+        container.appendChild(banner);
+    }
+
+    // -------------------------------------------------
     // MESSAGE INPUT LOGIC
     // -------------------------------------------------
     function openEmojiPicker(targetInput, anchorBtn) {
+        // Remove existing if any
+        const existing = document.getElementById('emojiPickerOverlay');
+        if (existing) {
+            existing.remove();
+            return;
+        }
+
         const picker = document.createElement('div');
-        picker.className = "absolute bottom-16 right-0 mr-4 bg-[#16181f] border border-[#2d3748] rounded-lg p-2 grid grid-cols-6 gap-2 z-50 shadow-xl";
+        picker.id = 'emojiPickerOverlay';
+        picker.className = "fixed bg-[#16181f] border border-[#2d3748] rounded-lg shadow-xl z-[100]";
+        // Use inline styles for layout to avoid Tailwind CDN async delay affecting measurement
+        picker.style.display = 'grid';
+        picker.style.gridTemplateColumns = 'repeat(6, 1fr)';
+        picker.style.gap = '0.5rem';
+        picker.style.padding = '0.5rem';
 
         const emojis = [
             '\u{1F600}', '\u{1F601}', '\u{1F602}', '\u{1F923}', '\u{1F60E}', '\u{1F60D}', '\u{1F970}', '\u{1F618}',
@@ -541,7 +653,7 @@ document.addEventListener('DOMContentLoaded', () => {
         emojis.forEach(e => {
             const btn = document.createElement('button');
             btn.innerText = e;
-            btn.className = "text-xl hover:scale-110 transition";
+            btn.className = "text-xl hover:scale-110 transition p-1";
             btn.onclick = () => {
                 targetInput.value += e;
                 targetInput.focus();
@@ -550,13 +662,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.body.appendChild(picker);
-        // Removed manual styling (top/left) to rely on CSS classes (bottom-16) for stability.
+
+        // Positioning Logic
+        if (anchorBtn) {
+            // invisible first to measure
+            picker.style.visibility = 'hidden';
+
+            const rect = anchorBtn.getBoundingClientRect();
+            const pickerRect = picker.getBoundingClientRect();
+
+            // Calculate Position
+            // Default: Above the button, aligned right
+            let top = rect.top - pickerRect.height - 10;
+            let left = rect.right - pickerRect.width;
+
+            // Boundary checks
+            // If it goes off the top, flip to below
+            if (top < 10) {
+                top = rect.bottom + 10;
+            }
+
+            // If it goes off the left, align left of button
+            if (left < 10) {
+                left = rect.left;
+            }
+
+            picker.style.top = `${top}px`;
+            picker.style.left = `${left}px`;
+            picker.style.visibility = 'visible';
+        } else {
+            // Fallback
+            picker.style.bottom = '4rem';
+            picker.style.right = '1rem';
+        }
 
         // Prevent click inside picker from closing it immediately
         picker.addEventListener('click', (e) => e.stopPropagation());
 
         setTimeout(() => {
-            document.addEventListener('click', () => picker.remove(), { once: true });
+            const closeHandler = (e) => {
+                if (!picker.contains(e.target) && e.target !== anchorBtn) {
+                    picker.remove();
+                    document.removeEventListener('click', closeHandler);
+                }
+            };
+            document.addEventListener('click', closeHandler);
         }, 0);
     }
 
@@ -601,9 +751,12 @@ document.addEventListener('DOMContentLoaded', () => {
             inputEl.value = text.substring(0, start) + prefix + placeholder + suffix + text.substring(end);
 
             inputEl.focus();
-            const newStart = start + prefix.length;
-            const newEnd = newStart + placeholder.length;
-            inputEl.setSelectionRange(newStart, newEnd);
+
+            // Re-calculate positions based on actual value content to avoid newline drift (\r\n vs \n)
+            const insertedStart = inputEl.value.indexOf(placeholder, start);
+            if (insertedStart !== -1) {
+                inputEl.setSelectionRange(insertedStart, insertedStart + placeholder.length);
+            }
 
             // Trigger resize if needed
             if (inputEl.tagName === 'TEXTAREA') {
@@ -633,6 +786,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const attachBtnId = isGroup ? 'groupAttachBtn' : 'personalAttachBtn';
         const attachBtn = document.getElementById(attachBtnId);
         if (attachBtn) {
+            // Remove old listeners to prevent duplicates if any (though cloning usually handles this)
             attachBtn.onclick = (e) => {
                 e.preventDefault();
                 openAttachmentMenu(inputEl, attachBtn);
@@ -640,22 +794,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Emoji Support
-        const parent = inputEl.parentElement.parentElement;
-        // Fallback or specific selection for emoji
-        let emojiBtn;
-        if (isGroup) {
-            // For group, parent of input is the relative container.
-            emojiBtn = inputEl.parentElement.querySelector('button span.material-symbols-outlined')?.parentElement;
-            // Actually inputEl sibling
-            if (!emojiBtn) {
-                // Try finding based on content
-                const btns = inputEl.parentElement.querySelectorAll('button');
-                emojiBtn = Array.from(btns).find(b => b.innerHTML.includes('sentiment_satisfied'));
-            }
-        } else {
-            const btns = parent.querySelectorAll('button');
-            emojiBtn = Array.from(btns).find(b => b.innerHTML.includes('sentiment_satisfied'));
-        }
+        const emojiBtnId = isGroup ? 'groupEmojiBtn' : 'personalEmojiBtn';
+        const emojiBtn = document.getElementById(emojiBtnId);
 
         if (emojiBtn) {
             emojiBtn.onclick = (e) => {
@@ -687,7 +827,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 socket.send(JSON.stringify({
                     type: "group_message",
                     code: currentGroupCode,
-                    message: text
+                    message: text,
+                    replyTo: replyingTo
                 }));
             } else {
                 if (!activeChatUser) return;
@@ -695,24 +836,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!personalMessages[activeChatUser]) {
                     personalMessages[activeChatUser] = [];
                 }
-                personalMessages[activeChatUser].push({
+                const msgData = {
                     from: currentUserName,
                     text: text,
                     timestamp: Date.now(),
-                    isSelf: true
-                });
+                    isSelf: true,
+                    replyTo: replyingTo
+                };
+                personalMessages[activeChatUser].push(msgData);
 
-                appendMessage(messageContainer, currentUserName, text, true);
+                appendMessage(messageContainer, currentUserName, text, true, false, replyingTo);
 
                 socket.send(JSON.stringify({
                     type: "personal_message",
                     to: activeChatUser,
-                    message: text
+                    message: text,
+                    replyTo: replyingTo
                 }));
             }
 
             inputEl.value = '';
             inputEl.style.height = ''; // Reset height
+            cancelReply(); // Clear reply state
         };
 
         sendBtn.addEventListener('click', sendMessage);
@@ -781,11 +926,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2000);
     }
 
-    function appendMessage(container, user, text, isSelf, isAdmin = false) {
+    function appendMessage(container, user, text, isSelf, isAdmin = false, replyTo = null) {
         const msgWrapper = document.createElement('div');
         msgWrapper.className = isSelf
-            ? "flex gap-4 max-w-[80%] ml-auto flex-row-reverse"
-            : "flex gap-4 max-w-[80%]";
+            ? "flex gap-4 max-w-[80%] ml-auto flex-row-reverse group relative"
+            : "flex gap-4 max-w-[80%] group relative";
+
+        // Escaping helper for inline onclick
+        const safeUser = user.replace(/'/g, "\\'");
+        const safeText = text.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
 
         const adminBadge = isAdmin ?
             `<div class="absolute -top-1 -right-1 bg-yellow-500 rounded-full p-[2px] flex items-center justify-center border-2 border-white dark:border-[#111318] z-10"><span class="material-symbols-outlined text-[8px] text-black font-bold">crown</span></div>`
@@ -806,6 +955,14 @@ document.addEventListener('DOMContentLoaded', () => {
             ? `<div class="text-[10px] text-gray-400 ml-1 mb-0.5">${user}</div>`
             : '';
 
+        // Quoted Reply Block
+        const replyBlock = replyTo
+            ? `<div class="mb-1 pl-3 border-l-2 border-white/30 text-xs text-white/70 bg-black/10 p-1 rounded-r truncate">
+                 <span class="font-bold block opacity-75">${replyTo.sender}</span>
+                 ${replyTo.text.substring(0, 50)}${replyTo.text.length > 50 ? '...' : ''}
+               </div>`
+            : '';
+
         // Check for Code Block (Strict)
         const trimmed = text.trim();
         const isCode = trimmed.startsWith('```') && trimmed.endsWith('```');
@@ -816,13 +973,15 @@ document.addEventListener('DOMContentLoaded', () => {
             rawCode = trimmed.slice(3, -3); // Remove backticks
             const escapedCode = rawCode.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-            // Unique ID for this message's copy button
+            // Unique IDs
             const msgId = 'code-' + Math.random().toString(36).substr(2, 9);
+            const replyBtnId = 'reply-' + Math.random().toString(36).substr(2, 9);
 
             contentHtml = `
                 <div class="flex flex-col gap-1 ${isSelf ? 'items-end' : 'items-start'} min-w-[250px]">
                     ${nameHeader}
                     <div class="bg-[#0f1117] rounded-lg ${roundedClass} border border-gray-700 overflow-hidden shadow-md w-full">
+                        ${replyBlock ? `<div class="mx-3 mt-2">${replyBlock}</div>` : ''}
                         <div class="flex items-center justify-center px-3 py-2 bg-[#16181f] border-b border-gray-700">
                              <div class="flex items-center justify-between w-full">
                                 <span class="text-xs text-gray-400 font-mono">Code Snippet</span>
@@ -836,21 +995,31 @@ document.addEventListener('DOMContentLoaded', () => {
                             <pre class="text-sm font-mono text-gray-300"><code>${escapedCode}</code></pre>
                         </div>
                     </div>
-                     <span class="text-[10px] text-gray-500 ${isSelf ? 'pr-1' : 'pl-1'}">Just now</span>
+                     <div class="flex items-center gap-2 mt-0.5 ${isSelf ? 'pr-1' : 'pl-1'}">
+                        <span class="text-[10px] text-gray-500">Just now</span>
+                        <button id="${replyBtnId}" class="text-[10px] text-primary hover:text-white font-medium hover:underline flex items-center gap-0.5 transition-colors">
+                             <span class="material-symbols-outlined text-[10px]">reply</span> Reply
+                        </button>
+                    </div>
                 </div>
             `;
-
-            // Post-render attach listener hack?
-            // Since we appending HTML string, we can't add listener directly.
-            // We'll append then find.
         } else {
+            // Unique ID
+            const replyBtnId = 'reply-' + Math.random().toString(36).substr(2, 9);
+
             contentHtml = `
                 <div class="flex flex-col gap-1 ${isSelf ? 'items-end' : 'items-start'}">
                     ${nameHeader}
-                    <div class="${bubbleColor} px-4 py-3 rounded-lg ${roundedClass} shadow-md">
-                        <p class="text-sm leading-relaxed">${text}</p>
+                    <div class="${bubbleColor} px-4 py-3 rounded-lg ${roundedClass} shadow-md relative min-w-[100px]">
+                        ${replyBlock ? `<div class="mb-2">${replyBlock}</div>` : ''}
+                        <p class="text-sm leading-relaxed whitespace-pre-wrap">${text}</p>
                     </div>
-                    <span class="text-[10px] text-gray-500 ${isSelf ? 'pr-1' : 'pl-1'}">Just now</span>
+                     <div class="flex items-center gap-2 mt-0.5 ${isSelf ? 'pr-1' : 'pl-1'}">
+                        <span class="text-[10px] text-gray-500">Just now</span>
+                        <button id="${replyBtnId}" class="text-[10px] text-primary hover:text-white font-medium hover:underline flex items-center gap-0.5 transition-colors">
+                            <span class="material-symbols-outlined text-[10px]">reply</span> Reply
+                        </button>
+                    </div>
                 </div>
             `;
         }
@@ -858,6 +1027,14 @@ document.addEventListener('DOMContentLoaded', () => {
         msgWrapper.innerHTML = isSelf ? (avatar + contentHtml) : (avatar + contentHtml);
         container.appendChild(msgWrapper);
         container.scrollTo(0, container.scrollHeight);
+
+        // Attach Reply Listener (Robust)
+        const replyBtnElement = msgWrapper.querySelector('button[id^="reply-"]');
+        if (replyBtnElement) {
+            replyBtnElement.onclick = () => {
+                startReply({ sender: user, text: text });
+            };
+        }
 
         // Attach Copy Listener if it was code
         if (isCode) {
@@ -985,7 +1162,7 @@ document.addEventListener('DOMContentLoaded', () => {
                      <div class="size-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs">
                         ${user.substring(0, 2).toUpperCase()}
                      </div>
-                     ${isMe ? `
+                     ${(user === currentGroupAdmin) ? `
                      <div class="absolute -top-1 -right-1 bg-yellow-500 rounded-full p-[2px] flex items-center justify-center border-2 border-white dark:border-surface-dark">
                         <span class="material-symbols-outlined text-[10px] text-black font-bold">crown</span>
                      </div>` : ''} 
@@ -1121,6 +1298,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (backToEmptyStateBtn) {
         backToEmptyStateBtn.addEventListener('click', () => {
+            initializePersonalView();
+        });
+    }
+
+    if (mobileBackBtn) {
+        mobileBackBtn.addEventListener('click', () => {
             initializePersonalView();
         });
     }
